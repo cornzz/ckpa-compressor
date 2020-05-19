@@ -235,3 +235,14 @@ public:
 };
 
 //==============================================================================
+
+class Visualiser : public AudioVisualiserComponent
+{
+public:
+    Visualiser() : AudioVisualiserComponent(1)
+    {
+        setBufferSize(512);
+        setSamplesPerBlock(1024);
+        setColours(getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.15), getLookAndFeel().findColour(Slider::thumbColourId));
+    }
+};

@@ -32,8 +32,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_c
 
     int editorHeight = 2 * editorMargin;
     for (int i = 0; i < parameters.size(); ++i) {
-        if (const AudioProcessorParameterWithID* parameter =
-            dynamic_cast<AudioProcessorParameterWithID*> (parameters[i])) {
+        if (const AudioProcessorParameterWithID* parameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i])) {
 
             if (processor.parameters.parameterTypes[i] == "Slider") {
                 Slider* aSlider;
@@ -99,6 +98,9 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_c
 
     //======================================
 
+    editorHeight += 200;
+    addAndMakeVisible(processor.visualiser);
+
     editorHeight += components.size() * editorPadding;
     setSize(editorWidth, editorHeight);
 }
@@ -130,4 +132,6 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 
         r = r.removeFromBottom(r.getHeight() - editorPadding);
     }
+
+    processor.visualiser.setBounds(r.removeFromTop(200));
 }

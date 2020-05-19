@@ -73,6 +73,8 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
 
     inverseSampleRate = 1.0f / (float)getSampleRate();
     inverseE = 1.0f / M_E;
+
+    visualiser.clear();
 }
 
 void Ckpa_compressorAudioProcessor::releaseResources()
@@ -87,49 +89,51 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     const int numOutputChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
 
-    // Return if bypass activated
-    if ((bool)paramBypass.getTargetValue())
-        return;
+    // Don't compress if bypass activated
+    if (!(bool)paramBypass.getTargetValue()) {
+        mixedDownInput.clear();
+        for (int channel = 0; channel < numInputChannels; ++channel)
+            mixedDownInput.addFrom(0, 0, buffer, channel, 0, numSamples, 1.0f / numInputChannels);
 
-    mixedDownInput.clear();
-    for (int channel = 0; channel < numInputChannels; ++channel)
-        mixedDownInput.addFrom(0, 0, buffer, channel, 0, numSamples, 1.0f / numInputChannels);
+        for (int sample = 0; sample < numSamples; ++sample) {
+            float T = paramThreshold.getNextValue();                                // Threshold
+            float R = paramRatio.getNextValue();                                    // Ratio
+            float alphaA = calculateAttackOrRelease(paramAttack.getNextValue());    // Attack
+            float alphaR = calculateAttackOrRelease(paramRelease.getNextValue());   // Release
+            float makeupGain = paramMakeupGain.getNextValue();                      // Makeup Gain
 
-    for (int sample = 0; sample < numSamples; ++sample) {
-        float T = paramThreshold.getNextValue();                                // Threshold
-        float R = paramRatio.getNextValue();                                    // Ratio
-        float alphaA = calculateAttackOrRelease(paramAttack.getNextValue());    // Attack
-        float alphaR = calculateAttackOrRelease(paramRelease.getNextValue());   // Release
-        float makeupGain = paramMakeupGain.getNextValue();                      // Makeup Gain
+            // Square input
+            inputLevel = powf(mixedDownInput.getSample(0, sample), 2.0f);
+            xg = (inputLevel <= 1e-6f) ? -60.0f : 10.0f * log10f(inputLevel);
 
-        // Square input
-        inputLevel = powf(mixedDownInput.getSample(0, sample), 2.0f);
-        xg = (inputLevel <= 1e-6f) ? -60.0f : 10.0f * log10f(inputLevel);
+            // Compressor
+            if (xg < T) {   // Do nothing
+                yg = xg;
+            } else {        // Compress
+                yg = T + (xg - T) / R;
+            }
 
-        // Compressor
-        if (xg < T) {   // Do nothing
-            yg = xg;
-        } else {        // Compress
-            yg = T + (xg - T) / R;
-        }
+            // Difference of input and output of compression
+            xl = xg - yg;
 
-        // Difference of input and output of compression
-        xl = xg - yg;
+            if (xl > ylPrev) {  // Signal rising
+                yl = alphaA * ylPrev + (1.0f - alphaA) * xl;
+            } else {            // Signal falling
+                yl = alphaR * ylPrev + (1.0f - alphaR) * xl;
+            }
 
-        if (xl > ylPrev) {  // Signal rising
-            yl = alphaA * ylPrev + (1.0f - alphaA) * xl;
-        } else {            // Signal falling
-            yl = alphaR * ylPrev + (1.0f - alphaR) * xl;
-        }
+            control = powf(10.0f, (makeupGain - yl) * 0.05f);
+            ylPrev = yl;
 
-        control = powf(10.0f, (makeupGain - yl) * 0.05f);
-        ylPrev = yl;
-
-        for (int channel = 0; channel < numInputChannels; ++channel) {
-            float newValue = buffer.getSample(channel, sample) * control;
-            buffer.setSample(channel, sample, newValue);
+            for (int channel = 0; channel < numInputChannels; ++channel) {
+                float newValue = buffer.getSample(channel, sample) * control;
+                buffer.setSample(channel, sample, newValue);
+            }
         }
     }
+
+    // Push signal to visualiser buffer
+    visualiser.pushBuffer(buffer);
 
     //======================================
 

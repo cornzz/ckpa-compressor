@@ -101,6 +101,8 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_c
     editorHeight += 200;
     addAndMakeVisible(processor.visualiser);
 
+    addAndMakeVisible(processor.thresholdLine);
+
     editorHeight += components.size() * editorPadding;
     setSize(editorWidth, editorHeight);
 }
@@ -133,5 +135,7 @@ void Ckpa_compressorAudioProcessorEditor::resized()
         r = r.removeFromBottom(r.getHeight() - editorPadding);
     }
 
-    processor.visualiser.setBounds(r.removeFromTop(200));
+    Rectangle<int> rVis = r.removeFromTop(200);
+    processor.visualiser.setBounds(rVis);
+    processor.thresholdLine.setBounds(rVis);
 }

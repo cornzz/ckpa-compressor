@@ -245,4 +245,30 @@ public:
         setSamplesPerBlock(1024);
         setColours(getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.15), getLookAndFeel().findColour(Slider::thumbColourId));
     }
+
+    void paint(Graphics& g) {
+        AudioVisualiserComponent::paint(g);
+    }
+};
+
+class DraggableLine : public Component
+{
+public:
+    void paint(Graphics& g) {
+        Line<float> line(Point<float>(0, 90), Point<float>(getWidth(), 90));
+        g.drawLine(line, 1.0f);
+    }
+
+    void mouseDown(const MouseEvent& e)
+    {
+        myDragger.startDraggingComponent(this, e);
+    }
+
+    void mouseDrag(const MouseEvent& e)
+    {
+        myDragger.dragComponent(this, e, nullptr);
+    }
+
+private:
+    ComponentDragger myDragger;
 };

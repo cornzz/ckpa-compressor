@@ -98,6 +98,8 @@ public:
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
 
+    DraggableLine thresholdLine;
+
     Visualiser visualiser;
 
 private:

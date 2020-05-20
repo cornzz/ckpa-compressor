@@ -113,7 +113,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 yg = T + (xg - T) / R;
             }
 
-            // Difference of input and output of compression
+            // Difference of input and output of compression (?)
             xl = xg - yg;
 
             if (xl > ylPrev) {  // Signal rising

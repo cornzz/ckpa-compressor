@@ -104,6 +104,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
 
             // Square input
             inputLevel = powf(mixedDownInput.getSample(0, sample), 2.0f);
+            // Convert gain to dB
             xg = (inputLevel <= 1e-6f) ? -60.0f : 10.0f * log10f(inputLevel);
 
             // Compressor
@@ -113,15 +114,16 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 yg = T + (xg - T) / R;
             }
 
-            // Difference of input and output of compression (?)
+            // Difference of input and output of compression
             xl = xg - yg;
 
-            if (xl > ylPrev) {  // Signal rising
+            if (xl > ylPrev) {  // Signal rising -> Attack
                 yl = alphaA * ylPrev + (1.0f - alphaA) * xl;
-            } else {            // Signal falling
+            } else {            // Signal falling -> Release
                 yl = alphaR * ylPrev + (1.0f - alphaR) * xl;
             }
 
+            // Calculate control and convert dB to gain
             control = powf(10.0f, (makeupGain - yl) * 0.05f);
             ylPrev = yl;
 

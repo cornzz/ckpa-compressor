@@ -23,9 +23,32 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_compressorAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p)
+    : AudioProcessorEditor (&p), 
+    processor (p), 
+    tabs (p)
+{
+    addAndMakeVisible(tabs);
+    setSize(editorWidth, 400);
+}
+
+Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
+{
+}
+
+void Ckpa_compressorAudioProcessorEditor::paint (Graphics& g)
+{
+    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+}
+
+void Ckpa_compressorAudioProcessorEditor::resized()
+{
+    tabs.setBounds(getLocalBounds());
+}
+
+//=============================== Level 1 ======================================
+
+Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
     int comboBoxCounter = 0;
@@ -98,26 +121,20 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_c
 
     //======================================
 
-    editorHeight += 200;
-    addAndMakeVisible(processor.visualiser);
-
-    addAndMakeVisible(processor.thresholdLine);
-
     editorHeight += components.size() * editorPadding;
     setSize(editorWidth, editorHeight);
 }
 
-Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
+Level1Editor::~Level1Editor()
 {
 }
 
-//==============================================================================
-void Ckpa_compressorAudioProcessorEditor::paint (Graphics& g)
+void Level1Editor::paint(Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
 }
 
-void Ckpa_compressorAudioProcessorEditor::resized()
+void Level1Editor::resized()
 {
     Rectangle<int> r = getLocalBounds().reduced(editorMargin);
     r = r.removeFromRight(r.getWidth() - labelWidth);
@@ -134,6 +151,30 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 
         r = r.removeFromBottom(r.getHeight() - editorPadding);
     }
+}
+
+//=============================== Level 2 ======================================
+
+Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
+{
+    addAndMakeVisible(processor.visualiser);
+    addAndMakeVisible(processor.thresholdLine);
+
+    setSize(editorWidth, 500);
+}
+
+Level2Editor::~Level2Editor()
+{
+}
+
+void Level2Editor::paint(Graphics& g)
+{
+    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+}
+
+void Level2Editor::resized()
+{
+    Rectangle<int> r = getLocalBounds().reduced(editorMargin);
 
     Rectangle<int> rVis = r.removeFromTop(200);
     processor.visualiser.setBounds(rVis);

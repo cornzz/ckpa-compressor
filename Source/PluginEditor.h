@@ -28,19 +28,16 @@
 //==============================================================================
 /**
 */
-class Ckpa_compressorAudioProcessorEditor  : public AudioProcessorEditor
+class Level1Editor : public Component
 {
 public:
-    Ckpa_compressorAudioProcessorEditor (Ckpa_compressorAudioProcessor&);
-    ~Ckpa_compressorAudioProcessorEditor();
+    Level1Editor(Ckpa_compressorAudioProcessor&);
+    ~Level1Editor();
 
-    //==============================================================================
-    void paint (Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     Ckpa_compressorAudioProcessor& processor;
 
     enum {
@@ -72,6 +69,72 @@ private:
     OwnedArray<SliderAttachment> sliderAttachments;
     OwnedArray<ButtonAttachment> buttonAttachments;
     OwnedArray<ComboBoxAttachment> comboBoxAttachments;
+};
+
+//==============================================================================
+
+class Level2Editor : public Component
+{
+public:
+    Level2Editor(Ckpa_compressorAudioProcessor&);
+    ~Level2Editor();
+
+    void paint(Graphics&) override;
+    void resized() override;
+
+private:
+    Ckpa_compressorAudioProcessor& processor;
+
+    enum {
+        editorWidth = 500,
+        editorMargin = 10,
+        editorPadding = 10,
+    };
+};
+
+//==============================================================================
+
+struct MainTabbedComponent : public TabbedComponent
+{
+    MainTabbedComponent(Ckpa_compressorAudioProcessor& p) : TabbedComponent(TabbedButtonBar::TabsAtBottom)
+    {
+        auto colour = findColour(ResizableWindow::backgroundColourId);
+
+        addTab("Level 1", colour, new Level1Editor(p), true);
+        addTab("Level 2", colour, new Level2Editor(p), true);
+        addTab("Level 3", colour, new Level1Editor(p), true);
+        setOutline(0.0f);
+    }
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainTabbedComponent)
+};
+
+//==============================================================================
+
+class Ckpa_compressorAudioProcessorEditor  : public AudioProcessorEditor
+{
+public:
+    Ckpa_compressorAudioProcessorEditor (Ckpa_compressorAudioProcessor&);
+    ~Ckpa_compressorAudioProcessorEditor();
+
+    //==============================================================================
+    void paint (Graphics&) override;
+    void resized() override;
+
+private:
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    Ckpa_compressorAudioProcessor& processor;
+
+    enum {
+        editorWidth = 500,
+        editorMargin = 10,
+        editorPadding = 10,
+    };
+
+    //======================================
+
+    MainTabbedComponent tabs;
 
     //==============================================================================
 

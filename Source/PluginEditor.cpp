@@ -26,10 +26,23 @@
 Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_compressorAudioProcessor& p)
     : AudioProcessorEditor (&p), 
     processor (p), 
-    tabs (p)
+    tabs (p),
+    powerButton("powerButton", DrawableButton::ImageFitted)
 {
     addAndMakeVisible(tabs);
     setSize(editorWidth, 400);
+
+    //======================================
+
+    std::unique_ptr<Drawable> d = Drawable::createFromSVG(*XmlDocument::parse(powerButtonSVG));
+    std::unique_ptr<Drawable> normal = d->createCopy();
+    normal->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId));
+    std::unique_ptr<Drawable> over = d->createCopy();
+    over->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.15));
+    std::unique_ptr<Drawable> down = d->createCopy();
+    down->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15));
+    powerButton.setImages(&(*normal), &(*over), &(*down), &(*d));
+    addAndMakeVisible(powerButton);
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
@@ -44,6 +57,7 @@ void Ckpa_compressorAudioProcessorEditor::paint (Graphics& g)
 void Ckpa_compressorAudioProcessorEditor::resized()
 {
     tabs.setBounds(getLocalBounds());
+    powerButton.setBounds(getLocalBounds().removeFromBottom(30).removeFromRight(30));
 }
 
 //=============================== Level 1 ======================================

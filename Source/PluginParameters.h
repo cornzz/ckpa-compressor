@@ -246,7 +246,8 @@ public:
         setColours(getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.15), getLookAndFeel().findColour(Slider::thumbColourId));
     }
 
-    void paint(Graphics& g) {
+    void paint(Graphics& g) override
+    {
         AudioVisualiserComponent::paint(g);
     }
 };
@@ -254,17 +255,18 @@ public:
 class DraggableLine : public Component
 {
 public:
-    void paint(Graphics& g) {
+    void paint(Graphics& g) override
+    {
         Line<float> line(Point<float>(0, 90), Point<float>(getWidth(), 90));
         g.drawLine(line, 1.0f);
     }
 
-    void mouseDown(const MouseEvent& e)
+    void mouseDown(const MouseEvent& e) override
     {
         myDragger.startDraggingComponent(this, e);
     }
 
-    void mouseDrag(const MouseEvent& e)
+    void mouseDrag(const MouseEvent& e) override
     {
         myDragger.dragComponent(this, e, nullptr);
     }

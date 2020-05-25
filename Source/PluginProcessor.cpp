@@ -24,8 +24,8 @@
 #include "PluginEditor.h"
 #include "PluginParameters.h"
 
-
 //==============================================================================
+
 Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
@@ -88,6 +88,8 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     const int numInputChannels = getTotalNumInputChannels();
     const int numOutputChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
+    AudioBuffer<float> bufferBefore;
+    bufferBefore.makeCopyOf(buffer);
 
     // Don't compress if bypass activated
     if (!(bool)paramBypass.getTargetValue()) {
@@ -135,7 +137,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     }
 
     // Push signal to visualiser buffer
-    visualiser.pushBuffer(buffer);
+    visualiser.pushBuffer(bufferBefore, buffer);
 
     //======================================
 

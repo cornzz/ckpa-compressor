@@ -47,7 +47,10 @@ public:
    #endif
 
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
-
+    foleys::LevelMeterSource& getMeterSource()
+    {
+        return meterSource;
+    }
     //==============================================================================
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -71,8 +74,6 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-	//=============================================================================
-	foleys::LevelMeterSource& getMeterSource();
     //==============================================================================
 
     AudioSampleBuffer mixedDownInput;
@@ -107,5 +108,5 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Ckpa_compressorAudioProcessor)
-	foleys::LevelMeterSource meterSource;
+    foleys::LevelMeterSource meterSource;
 };

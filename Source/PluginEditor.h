@@ -40,7 +40,9 @@ public:
 private:
     Ckpa_compressorAudioProcessor& processor;
 	foleys::LevelMeterLookAndFeel lnf;
-    foleys::LevelMeter meter { foleys::LevelMeter::Minimal };
+    foleys::LevelMeter inputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
+    foleys::LevelMeter outputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
+    foleys::LevelMeter gainMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
 
     enum {
         editorWidth = 500,
@@ -52,6 +54,7 @@ private:
         sliderHeight = 25,
         buttonHeight = 25,
         comboBoxHeight = 25,
+        levelMeterHeight = 50,
         labelWidth = 100,
     };
 

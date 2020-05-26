@@ -86,8 +86,6 @@ private:
     
     OwnedArray<Slider> controlLines;
 
-    Array<Component*> components;
-
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 
     OwnedArray<SliderAttachment> sliderAttachments;

@@ -39,7 +39,7 @@ Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
 #endif
     parameters(*this)
     , paramThreshold(parameters, "Threshold", "dB", -60.0f, 0.0f, -24.0f)
-    , paramRatio(parameters, "Ratio", ":1", 1.0f, 100.0f, 50.0f)
+    , paramRatio(parameters, "Ratio", ":1", 1.0f, 100.0f, 1.0f)
     , paramAttack(parameters, "Attack", "ms", 0.1f, 100.0f, 2.0f, [](float value) { return value * 0.001f; })
     , paramRelease(parameters, "Release", "ms", 10.0f, 1000.0f, 300.0f, [](float value) { return value * 0.001f; })
     , paramMakeupGain(parameters, "Makeup gain", "dB", -12.0f, 12.0f, 0.0f)

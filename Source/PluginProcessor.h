@@ -27,10 +27,10 @@
 
 #include <JuceHeader.h>
 #include "PluginParameters.h"
+#include "Visualiser.h"
 
 //==============================================================================
-/**
-*/
+
 class Ckpa_compressorAudioProcessor  : public AudioProcessor
 {
 public:
@@ -98,8 +98,8 @@ public:
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
 
-    DraggableLine thresholdLine;
-
+    //====================================== Level 2
+    
     Visualiser visualiser;
 
 private:

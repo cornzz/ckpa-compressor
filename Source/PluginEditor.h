@@ -26,8 +26,7 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
-/**
-*/
+
 class Level1Editor : public Component
 {
 public:
@@ -84,6 +83,12 @@ public:
 
 private:
     Ckpa_compressorAudioProcessor& processor;
+    
+    OwnedArray<Slider> controlLines;
+
+    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+
+    OwnedArray<SliderAttachment> sliderAttachments;
 
     enum {
         editorWidth = 500,

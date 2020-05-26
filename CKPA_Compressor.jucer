@@ -13,6 +13,8 @@
       <FILE id="QUhepy" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="LtQ2Ae" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="xaw9wh" name="Visualiser.cpp" compile="1" resource="0" file="Source/Visualiser.cpp"/>
+      <FILE id="mxzYOg" name="Visualiser.h" compile="0" resource="0" file="Source/Visualiser.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

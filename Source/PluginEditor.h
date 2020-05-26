@@ -40,7 +40,7 @@ public:
 private:
     Ckpa_compressorAudioProcessor& processor;
 	foleys::LevelMeterLookAndFeel lnf;
-    foleys::LevelMeter inputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
+    foleys::LevelMeter inputMeter { (foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal) };
     foleys::LevelMeter outputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
     foleys::LevelMeter gainMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
 

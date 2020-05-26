@@ -146,7 +146,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     addAndMakeVisible(inputMeter);
 
     Label* inputLabel;
-    labels.add(inputLabel = new Label("InputGain", "InputGain"));
+    labels.add(inputLabel = new Label("Input", "Input"));
     inputLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(inputLabel);
 
@@ -157,7 +157,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     components.add(&outputMeter);
     addAndMakeVisible(outputMeter);
     Label* outputLabel;
-    labels.add(outputLabel = new Label("OutputGain", "OutputGain"));
+    labels.add(outputLabel = new Label("Output", "Output"));
     outputLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(outputLabel);
 
@@ -168,7 +168,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     components.add(&gainMeter);
     addAndMakeVisible(gainMeter);
     Label* gainLabel;
-    labels.add(gainLabel = new Label("DifferenzGain", "DifferenzGain"));
+    labels.add(gainLabel = new Label("GainReduction", "Gain Reduction"));
     gainLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(gainLabel);
 

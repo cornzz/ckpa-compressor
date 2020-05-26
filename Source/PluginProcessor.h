@@ -71,6 +71,8 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+	//=============================================================================
+	foleys::LevelMeterSource& getMeterSource();
     //==============================================================================
 
     AudioSampleBuffer mixedDownInput;
@@ -105,4 +107,5 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Ckpa_compressorAudioProcessor)
+	foleys::LevelMeterSource meterSource;
 };

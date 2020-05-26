@@ -131,6 +131,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 float newValue = buffer.getSample(channel, sample) * control;
                 buffer.setSample(channel, sample, newValue);
             }
+			meterSource.measureBlock (buffer);
         }
     }
 

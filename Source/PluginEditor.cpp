@@ -132,7 +132,12 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             addAndMakeVisible(components.getLast());
         }
     }
+		// adjust the colours to how you like them, e.g.
+	lnf.setColour (foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);
 
+	meter.setLookAndFeel (&lnf);
+	meter.setMeterSource (&processor.getMeterSource());
+	addAndMakeVisible (meter);
     //======================================
 
     editorHeight += components.size() * editorPadding;

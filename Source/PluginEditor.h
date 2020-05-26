@@ -39,6 +39,8 @@ public:
 
 private:
     Ckpa_compressorAudioProcessor& processor;
+	foleys::LevelMeterLookAndFeel lnf;
+    foleys::LevelMeter meter { foleys::LevelMeter::Minimal };
 
     enum {
         editorWidth = 500,

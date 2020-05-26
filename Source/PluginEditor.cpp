@@ -30,7 +30,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_c
     powerButton("powerButton", DrawableButton::ImageFitted)
 {
     addAndMakeVisible(tabs);
-    setSize(editorWidth, 400);
+    setSize(editorWidth, 450);
 
     //======================================
 
@@ -171,6 +171,8 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     labels.add(gainLabel = new Label("DifferenzGain", "DifferenzGain"));
     gainLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(gainLabel);
+
+    editorHeight += (3*levelMeterHeight);
     //======================================
 
     editorHeight += components.size() * editorPadding;
@@ -216,7 +218,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     addAndMakeVisible(processor.visualiser);
     addAndMakeVisible(processor.thresholdLine);
 
-    setSize(editorWidth, 500);
+    //setSize(editorWidth, 500);
 }
 
 Level2Editor::~Level2Editor()

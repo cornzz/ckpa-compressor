@@ -71,9 +71,8 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     inputLevel = 0.0f;
     ylPrev = 0.0f;
 
-    inverseSampleRate = 1.0f / (float)getSampleRate();
+    inverseSampleRate = 1.0f / (float) getSampleRate();
     inverseE = 1.0f / M_E;
-
     visualiser.clear();
 }
 
@@ -136,6 +135,9 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
         }
     }
 
+    // Push signal to level meter buffer
+    meterSource.measureBlock(buffer);
+
     // Push signal to visualiser buffer
     visualiser.pushBuffer(bufferBefore, buffer);
 
@@ -152,6 +154,7 @@ float Ckpa_compressorAudioProcessor::calculateAttackOrRelease(float value)
     else
         return pow(inverseE, inverseSampleRate / value);
 }
+
 
 //==============================================================================
 

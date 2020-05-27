@@ -27,6 +27,7 @@
 
 #include <JuceHeader.h>
 #include "PluginParameters.h"
+#include "Visualiser.h"
 
 //==============================================================================
 
@@ -98,8 +99,8 @@ public:
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
 
-    DraggableLine thresholdLine;
-
+    //====================================== Level 2
+    
     Visualiser visualiser;
 
 private:

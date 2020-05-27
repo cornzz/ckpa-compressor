@@ -186,7 +186,43 @@ void Level1Editor::resized()
 Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
     addAndMakeVisible(processor.visualiser);
-    addAndMakeVisible(processor.thresholdLine);
+    
+    //======================================
+
+    const Array<AudioProcessorParameter*> parameters = processor.getParameters();
+    auto* dhl = new DraggableHorizontalLine(); // TODO: This is leaking
+
+    Slider* thresholdLine;
+    controlLines.add(thresholdLine = new Slider());
+    thresholdLine->setSliderStyle(Slider::LinearVertical);
+    thresholdLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
+    thresholdLine->setLookAndFeel(dhl);
+    const AudioProcessorParameterWithID* thresholdParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[0]);
+    SliderAttachment* thresholdSliderAttachment;
+    sliderAttachments.add(thresholdSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, thresholdParamter->paramID, *thresholdLine));
+    addAndMakeVisible(thresholdLine);
+
+    Slider* makeupGainLine;
+    controlLines.add(makeupGainLine = new Slider());
+    makeupGainLine->setSliderStyle(Slider::LinearVertical);
+    makeupGainLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
+    makeupGainLine->setLookAndFeel(dhl);
+    const AudioProcessorParameterWithID* makeupGainParameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[4]);
+    SliderAttachment* makeupGainSliderAttachment;
+    sliderAttachments.add(makeupGainSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, makeupGainParameter->paramID, *makeupGainLine));
+    addAndMakeVisible(makeupGainLine);
+
+    Slider* ratioLine;
+    controlLines.add(ratioLine = new Slider());
+    ratioLine->setSliderStyle(Slider::LinearVertical);
+    ratioLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
+    ratioLine->setLookAndFeel(dhl);
+    const AudioProcessorParameterWithID* ratioParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[1]);
+    SliderAttachment* ratioSliderAttachment;
+    sliderAttachments.add(ratioSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, ratioParamter->paramID, *ratioLine));
+    addAndMakeVisible(ratioLine);
+
+    //======================================
 
     setSize(editorWidth, 500);
 }
@@ -202,10 +238,18 @@ void Level2Editor::paint(Graphics& g)
 
 void Level2Editor::resized()
 {
-    Rectangle<int> r = getLocalBounds().reduced(editorMargin);
-
-    Rectangle<int> rVis = r.removeFromTop(200);
+    Rectangle<int> rVis = getLocalBounds().reduced(editorMargin);
     processor.visualiser.setBounds(rVis);
+
+    rVis = getLocalBounds().reduced(editorMargin);
+    controlLines[0]->setBounds(rVis.removeFromLeft(20).removeFromTop(rVis.getHeight() / 2)); // Threshold
+
+    rVis = getLocalBounds().reduced(editorMargin);
+    controlLines[1]->setBounds(rVis.removeFromRight(20).removeFromTop(rVis.getHeight() / 2)); // Makeup Gain
+
+    rVis = getLocalBounds().reduced(editorMargin);
+    controlLines[2]->setBounds(rVis.removeFromLeft(rVis.getHeight() / 2 + 10).removeFromRight(20).removeFromTop(rVis.getHeight() / 2)); // Ratio
+    controlLines[2]->setTransform(AffineTransform::verticalFlip(195));
 }
 
 //============================= Main Editor ====================================
@@ -228,7 +272,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     over->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.15));
     std::unique_ptr<Drawable> down = d->createCopy();
     down->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15));
-    powerButton.setImages(&(*normal), &(*over), &(*down), &(*d));
+    powerButton.setImages(normal.get(), over.get(), down.get(), d.get());
     addAndMakeVisible(powerButton);
 }
 

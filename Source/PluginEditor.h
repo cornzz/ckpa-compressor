@@ -88,6 +88,12 @@ public:
 
 private:
     Ckpa_compressorAudioProcessor& processor;
+    
+    OwnedArray<Slider> controlLines;
+
+    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+
+    OwnedArray<SliderAttachment> sliderAttachments;
 
     enum {
         editorWidth = 500,

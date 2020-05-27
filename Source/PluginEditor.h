@@ -26,8 +26,7 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
-/**
-*/
+
 class Level1Editor : public Component
 {
 public:

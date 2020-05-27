@@ -29,8 +29,7 @@
 #include "PluginParameters.h"
 
 //==============================================================================
-/**
-*/
+
 class Ckpa_compressorAudioProcessor  : public AudioProcessor
 {
 public:

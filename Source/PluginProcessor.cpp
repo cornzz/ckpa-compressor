@@ -26,6 +26,7 @@
 
 
 //==============================================================================
+
 Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()

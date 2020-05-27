@@ -30,7 +30,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor (Ckpa_c
     powerButton("powerButton", DrawableButton::ImageFitted)
 {
     addAndMakeVisible(tabs);
-    setSize(editorWidth, 450);
+    setSize(editorWidth, 400);
 
     //======================================
 
@@ -132,13 +132,15 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             addAndMakeVisible(components.getLast());
         }
     }
-		// adjust the colours to how you like them, e.g.
-    lnf.setColour(foleys::LevelMeter::lmBackgroundColour,getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::ColourIds::trackColourId));
+
+    lnf.setColour(foleys::LevelMeter::lmBackgroundColour, getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.5));
+    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::ColourIds::trackColourId));
+    lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
+    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::ColourIds::thumbColourId));
     lnf.setColour(foleys::LevelMeter::lmTicksColour, Colours::black);
 
     //======================================
-    //Levelmeter for Input
+    //Levelmeter for input
 	inputMeter.setLookAndFeel (&lnf);
 	inputMeter.setMeterSource (&processor.getMeterSource());
     inputMeter.setSelectedChannel(0);
@@ -150,29 +152,30 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     inputLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(inputLabel);
 
-    //Levelmeter for Output
+    // Levelmeter for output
     outputMeter.setLookAndFeel(&lnf);
     outputMeter.setMeterSource(&processor.getMeterSource());
     outputMeter.setSelectedChannel(0);
     components.add(&outputMeter);
     addAndMakeVisible(outputMeter);
+
     Label* outputLabel;
     labels.add(outputLabel = new Label("Output", "Output"));
     outputLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(outputLabel);
 
-    //Levelmeter for Differenz between Input and Output
-    gainMeter.setLookAndFeel(&lnf);
-    gainMeter.setMeterSource(&processor.getMeterSource());
-    gainMeter.setSelectedChannel(0);
-    components.add(&gainMeter);
-    addAndMakeVisible(gainMeter);
+    // Levelmeter for gain reduction
+    gainReductionMeter.setLookAndFeel(&lnf);
+    gainReductionMeter.setMeterSource(&processor.getMeterSource());
+    gainReductionMeter.setSelectedChannel(0);
+    components.add(&gainReductionMeter);
+    addAndMakeVisible(gainReductionMeter);
+
     Label* gainLabel;
-    labels.add(gainLabel = new Label("GainReduction", "Gain Reduction"));
+    labels.add(gainLabel = new Label("GainReduction", "Gain reduction"));
     gainLabel->attachToComponent(components.getLast(), true);
     addAndMakeVisible(gainLabel);
 
-    editorHeight += (3*levelMeterHeight);
     //======================================
 
     editorHeight += components.size() * editorPadding;
@@ -205,7 +208,11 @@ void Level1Editor::resized()
             components[i]->setBounds(r.removeFromTop(comboBoxHeight));
         
         if (foleys::LevelMeter* aLevelMeter = dynamic_cast<foleys::LevelMeter*> (components[i]))
+        {
+            if (i + 1 == components.size())
+                r.removeFromTop(levelMeterHeight);
             components[i]->setBounds(r.removeFromTop(levelMeterHeight));
+        }
 
         r = r.removeFromBottom(r.getHeight() - editorPadding);
     }

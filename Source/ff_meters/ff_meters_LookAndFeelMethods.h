@@ -106,7 +106,7 @@ juce::Rectangle<float> getMeterBounds (const juce::Rectangle<float> bounds,
 juce::Rectangle<float> getMeterBarBounds (const juce::Rectangle<float> bounds,
                                           const foleys::LevelMeter::MeterFlags meterType) const override
 {
-    if (meterType & foleys::LevelMeter::Minimal)
+    /*if (meterType & foleys::LevelMeter::Minimal)
     {
         if (meterType & foleys::LevelMeter::Horizontal)
         {
@@ -148,7 +148,8 @@ juce::Rectangle<float> getMeterBarBounds (const juce::Rectangle<float> bounds,
     const auto w      = bounds.getWidth() * 0.45f;
     const auto top    = bounds.getY() + 2.0f * margin + w * 0.5f;
     const auto bottom = bounds.getBottom() - (2.0f * margin + 25.0f);
-    return juce::Rectangle<float>(bounds.getX() + margin, top, w, bottom - top);
+    return juce::Rectangle<float>(bounds.getX() + margin, top, w, bottom - top);*/
+    return bounds;
 }
 
 /** Override this callback to define the placement of the tickmarks.
@@ -156,7 +157,7 @@ juce::Rectangle<float> getMeterBarBounds (const juce::Rectangle<float> bounds,
 juce::Rectangle<float> getMeterTickmarksBounds (const juce::Rectangle<float> bounds,
                                                 const foleys::LevelMeter::MeterFlags meterType) const override
 {
-    if (meterType & foleys::LevelMeter::Minimal)
+    /*if (meterType & foleys::LevelMeter::Minimal)
     {
         if (meterType & foleys::LevelMeter::Horizontal) {
             return getMeterBarBounds(bounds, meterType).reduced (0.0, 2.0);
@@ -186,7 +187,7 @@ juce::Rectangle<float> getMeterTickmarksBounds (const juce::Rectangle<float> bou
         const auto top    = bounds.getY() + 2.0f * margin + w * 0.5f + 2.0f;
         const auto bottom = bounds.getBottom() - (2.0f * margin + 25.0f + 2.0f);
         return juce::Rectangle<float>(bounds.getCentreX(), top, w, bottom - top);
-    }
+    }*/
 
     return juce::Rectangle<float> ();
 }
@@ -196,7 +197,7 @@ juce::Rectangle<float> getMeterTickmarksBounds (const juce::Rectangle<float> bou
 juce::Rectangle<float> getMeterClipIndicatorBounds (const juce::Rectangle<float> bounds,
                                                     const foleys::LevelMeter::MeterFlags meterType) const override
 {
-    if (meterType & foleys::LevelMeter::Minimal)
+    /*if (meterType & foleys::LevelMeter::Minimal)
     {
         if (meterType & foleys::LevelMeter::Horizontal)
         {
@@ -241,7 +242,7 @@ juce::Rectangle<float> getMeterClipIndicatorBounds (const juce::Rectangle<float>
                                           w,
                                           w * 0.5f);
         }
-    }
+    }*/
     return juce::Rectangle<float> ();
 }
 
@@ -250,7 +251,7 @@ juce::Rectangle<float> getMeterClipIndicatorBounds (const juce::Rectangle<float>
 juce::Rectangle<float> getMeterMaxNumberBounds (const juce::Rectangle<float> bounds,
                                                 const foleys::LevelMeter::MeterFlags meterType) const override
 {
-    if (meterType & foleys::LevelMeter::Minimal)
+    /*if (meterType & foleys::LevelMeter::Minimal)
     {
         if (meterType & foleys::LevelMeter::MaxNumber)
         {
@@ -297,7 +298,8 @@ juce::Rectangle<float> getMeterMaxNumberBounds (const juce::Rectangle<float> bou
                                           bounds.getWidth() - 2 * margin,
                                           25.0);
         }
-    }
+    }*/
+    return juce::Rectangle<float>();
 }
 
 juce::Rectangle<float> drawBackground (juce::Graphics& g,
@@ -580,7 +582,7 @@ void drawMeterBar (juce::Graphics& g,
     {
         if (meterType & foleys::LevelMeter::Horizontal)
         {
-            if (horizontalGradient.getNumColours() < 2)
+            /*if (horizontalGradient.getNumColours() < 2)
             {
                 horizontalGradient = juce::ColourGradient (findColour (foleys::LevelMeter::lmMeterGradientLowColour),
                                                            floored.getX(), floored.getY(),
@@ -589,7 +591,8 @@ void drawMeterBar (juce::Graphics& g,
                 horizontalGradient.addColour (0.5, findColour (foleys::LevelMeter::lmMeterGradientLowColour));
                 horizontalGradient.addColour (0.75, findColour (foleys::LevelMeter::lmMeterGradientMidColour));
             }
-            g.setGradientFill (horizontalGradient);
+            g.setGradientFill (horizontalGradient);*/
+            g.setColour(findColour(foleys::LevelMeter::lmMeterGradientLowColour));
             g.fillRect (floored.withRight (floored.getRight() - rmsDb * floored.getWidth() / infinity));
 
             if (peakDb > -49.0)

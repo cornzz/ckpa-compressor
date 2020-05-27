@@ -47,7 +47,6 @@ public:
    #endif
 
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
-    foleys::LevelMeterSource& getMeterSource() { return meterSource;  }
 
     //==============================================================================
     AudioProcessorEditor* createEditor() override;
@@ -99,12 +98,15 @@ public:
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
 
+    foleys::LevelMeterSource meterSourceInput;
+    foleys::LevelMeterSource meterSourceOutput;
+    foleys::LevelMeterSource meterSourceGainReduction;
+
     //====================================== Level 2
     
     Visualiser visualiser;
 
 private:
-    foleys::LevelMeterSource meterSource;
 
     //==============================================================================
 

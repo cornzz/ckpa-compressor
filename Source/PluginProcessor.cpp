@@ -43,7 +43,7 @@ Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
     , paramAttack(parameters, "Attack", "ms", 0.1f, 100.0f, 2.0f, [](float value) { return value * 0.001f; })
     , paramRelease(parameters, "Release", "ms", 10.0f, 1000.0f, 300.0f, [](float value) { return value * 0.001f; })
     , paramMakeupGain(parameters, "Makeup gain", "dB", -12.0f, 12.0f, 0.0f)
-    , paramBypass(parameters, "Bypass")
+    , paramBypass(parameters, "")
 {
     parameters.valueTreeState.state = ValueTree(Identifier(getName().removeCharacters("- ")));
 }
@@ -87,8 +87,13 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     const int numInputChannels = getTotalNumInputChannels();
     const int numOutputChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
+
+    // Create copy of buffer before compression
     AudioBuffer<float> bufferBefore;
     bufferBefore.makeCopyOf(buffer);
+    
+    AudioBuffer<float> bufferGainReduction;
+    bufferGainReduction.makeCopyOf(buffer);
 
     // Don't compress if bypass activated
     if (!(bool)paramBypass.getTargetValue()) {
@@ -129,14 +134,25 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
             ylPrev = yl;
 
             for (int channel = 0; channel < numInputChannels; ++channel) {
-                float newValue = buffer.getSample(channel, sample) * control;
+                float oldValue = buffer.getSample(channel, sample);
+                float newValue = oldValue * control;
                 buffer.setSample(channel, sample, newValue);
+                bufferGainReduction.setSample(channel, sample, oldValue - newValue);
+            }
+        }
+    }
+    else {
+        for (int sample = 0; sample < numSamples; ++sample) {
+            for (int channel = 0; channel < numInputChannels; ++channel) {
+                bufferGainReduction.setSample(channel, sample, 0);
             }
         }
     }
 
-    // Push signal to level meter buffer
-    meterSource.measureBlock(buffer);
+    // Push signal to level metersources
+    meterSourceInput.measureBlock(bufferBefore);
+    meterSourceOutput.measureBlock(buffer);
+    meterSourceGainReduction.measureBlock(bufferGainReduction);    
 
     // Push signal to visualiser buffer
     visualiser.pushBuffer(bufferBefore, buffer);

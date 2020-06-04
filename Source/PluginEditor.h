@@ -88,11 +88,10 @@ public:
 
 private:
     Ckpa_compressorAudioProcessor& processor;
-    
+
+    std::unique_ptr<DraggableHorizontalLine> dhl;
     OwnedArray<Slider> controlLines;
-
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-
     OwnedArray<SliderAttachment> sliderAttachments;
 
     enum {

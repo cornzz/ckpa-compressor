@@ -190,7 +190,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     //======================================
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
-    auto* dhl = new DraggableHorizontalLine(); // TODO: This is leaking
+    dhl = std::make_unique<DraggableHorizontalLine>();
     int ind[] = { 0, 4, 1 };
     for (int i : ind)
     {
@@ -198,7 +198,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         controlLines.add(controlLine = new Slider());
         controlLine->setSliderStyle(Slider::LinearVertical);
         controlLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
-        controlLine->setLookAndFeel(dhl);
+        controlLine->setLookAndFeel(dhl.get());
         if (i == 4 || i == 1)
             controlLine->setColour(Slider::thumbColourId, (i == 4) ? Colour(0xFF2E8B00) : Colour(0xFFCB8035));
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);

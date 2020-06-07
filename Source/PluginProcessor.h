@@ -35,10 +35,12 @@ class Ckpa_compressorAudioProcessor  : public AudioProcessor
 {
 public:
     //==============================================================================
+
     Ckpa_compressorAudioProcessor();
     ~Ckpa_compressorAudioProcessor();
 
     //==============================================================================
+
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -49,10 +51,12 @@ public:
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
 
     //==============================================================================
+
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
     //==============================================================================
+
     const String getName() const override;
 
     bool acceptsMidi() const override;
@@ -61,6 +65,7 @@ public:
     double getTailLengthSeconds() const override;
 
     //==============================================================================
+
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram (int index) override;
@@ -68,6 +73,7 @@ public:
     void changeProgramName (int index, const String& newName) override;
 
     //==============================================================================
+
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
@@ -101,6 +107,8 @@ public:
     foleys::LevelMeterSource meterSourceInput;
     foleys::LevelMeterSource meterSourceOutput;
     foleys::LevelMeterSource meterSourceGainReduction;
+
+    bool level1active = false;
 
     //====================================== Level 2
     

@@ -102,4 +102,19 @@ void Visualiser::paint(Graphics& g)
 
     for (auto* c : channelsTop)
         paintChannel(g, r.removeFromTop(channelHeight), c->levels.begin(), c->levels.size(), c->nextSample);
+
+    for (Slider* controlLine : controlLines)
+    {
+        float sliderPos = controlLine->getPositionOfValue(controlLine->getValue());
+        g.setColour(controlLine->findColour(Slider::thumbColourId));
+        Line<float> line(Point<float>(r.getX(), sliderPos), Point<float>(r.getRight(), sliderPos));
+        g.drawLine(line, 1.0f);
+    }
+}
+
+//==============================================================================
+
+void Visualiser::addControlLine(Slider* controlLine)
+{
+    controlLines.add(controlLine); // TODO: throws error on exit
 }

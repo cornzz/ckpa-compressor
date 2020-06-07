@@ -47,6 +47,8 @@ public:
     void setColours(Colour bk, Colour fg) noexcept;
     void paint(Graphics& g) override;
 
+    void addControlLine(Slider* controlLine);
+
 private:
     struct ChannelInfo2
     {
@@ -106,6 +108,8 @@ private:
     OwnedArray<ChannelInfo2> channelsTop;
     int numSamplesTop, inputSamplesPerBlockTop;
     Colour waveformColour2;
+
+    OwnedArray<Slider> controlLines;
 };
 
 //==============================================================================
@@ -119,35 +123,40 @@ public:
         float maxSliderPos,
         const Slider::SliderStyle style, Slider& slider) override
     {
-        /*auto trackWidth = jmin(6.0f, width * 0.25f);
+        //auto trackWidth = jmin(6.0f, width * 0.25f);
 
-        Point<float> startPoint(x + width * 0.5f, height + y);
+        //Point<float> startPoint(x + width * 0.5f, height + y);
 
-        Point<float> endPoint(startPoint.x, y);
+        //Point<float> endPoint(startPoint.x, y);
 
-        Path backgroundTrack;
-        backgroundTrack.startNewSubPath(startPoint);
-        backgroundTrack.lineTo(endPoint);
-        g.setColour(slider.findColour(Slider::backgroundColourId));
-        g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
+        //Path backgroundTrack;
+        //backgroundTrack.startNewSubPath(startPoint);
+        //backgroundTrack.lineTo(endPoint);
+        //g.setColour(slider.findColour(Slider::backgroundColourId));
+        //g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
 
-        Path valueTrack;
-        Point<float> minPoint, maxPoint, thumbPoint;
-        
-        auto kx = x + width * 0.5f;
-        auto ky = sliderPos;
+        //Path valueTrack;
+        //Point<float> minPoint, maxPoint, thumbPoint;
+        //
+        //auto kx = x + width * 0.5f;
+        //auto ky = sliderPos;
 
-        minPoint = startPoint;
-        maxPoint = { kx, ky };
+        //minPoint = startPoint;
+        //maxPoint = { kx, ky };
 
-        valueTrack.startNewSubPath(minPoint);
-        valueTrack.lineTo(maxPoint);
-        g.setColour(slider.findColour(Slider::trackColourId));
-        g.strokePath(valueTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });*/
+        //valueTrack.startNewSubPath(minPoint);
+        //valueTrack.lineTo(maxPoint);
+        //g.setColour(slider.findColour(Slider::trackColourId));
+        //g.strokePath(valueTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
 
-        g.setColour(slider.findColour(Slider::thumbColourId));
-        Line<float> line(Point<float>(x, sliderPos), Point<float>(x + 300, sliderPos));
-        g.drawLine(line, 1.0f);
+        //Path p;
+        //p.startNewSubPath(x, y);
+        //p.lineTo(x + width, y);
+        //p.lineTo(x + width, y + height);
+        //p.lineTo(x, y + height);
+        //p.closeSubPath();
+        //g.setColour(Colours::black);
+        //g.strokePath(p, PathStrokeType(1.0f));
 
         auto thumbWidth = getSliderThumbRadius(slider);
         g.setColour(slider.findColour(Slider::thumbColourId));

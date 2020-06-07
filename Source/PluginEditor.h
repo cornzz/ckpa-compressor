@@ -105,7 +105,17 @@ private:
 
 struct MainTabbedComponent : public TabbedComponent
 {
-    MainTabbedComponent(Ckpa_compressorAudioProcessor& p) : TabbedComponent(TabbedButtonBar::TabsAtBottom)
+    class TabsLookAndFeel : public LookAndFeel_V4
+    {
+        int getTabButtonSpaceAroundImage() override 
+        { 
+            return 4;
+        }
+    };
+
+public:
+    MainTabbedComponent(Ckpa_compressorAudioProcessor& p) : TabbedComponent(TabbedButtonBar::TabsAtBottom), 
+        processor(p)
     {
         auto colour = findColour(ResizableWindow::backgroundColourId);
 
@@ -113,7 +123,16 @@ struct MainTabbedComponent : public TabbedComponent
         addTab("Level 2", colour, new Level2Editor(p), true);
         addTab("Level 3", colour, new Level1Editor(p), true);
         setOutline(0.0f);
+        setLookAndFeel(new TabsLookAndFeel());
     }
+
+    void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
+    {
+        processor.level1active = (newCurrentTabName == "Level 1") ? true : false;
+    }
+
+private:
+    Ckpa_compressorAudioProcessor& processor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainTabbedComponent)
 };
@@ -127,6 +146,7 @@ public:
     ~Ckpa_compressorAudioProcessorEditor();
 
     //==============================================================================
+
     void paint (Graphics&) override;
     void resized() override;
     
@@ -137,9 +157,7 @@ private:
     Ckpa_compressorAudioProcessor& processor;
 
     OwnedArray<DrawableButton> buttons;
-
     typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-
     OwnedArray<ButtonAttachment> buttonAttachments;
 
     enum {

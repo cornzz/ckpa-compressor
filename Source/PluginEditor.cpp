@@ -167,8 +167,8 @@ void Level1Editor::resized()
         //if (ToggleButton* aButton = dynamic_cast<ToggleButton*> (components[i]))
         //    components[i]->setBounds(r.removeFromTop(buttonHeight));
 
-        if (ComboBox* aComboBox = dynamic_cast<ComboBox*> (components[i]))
-            components[i]->setBounds(r.removeFromTop(comboBoxHeight));
+        //if (ComboBox* aComboBox = dynamic_cast<ComboBox*> (components[i]))
+        //    components[i]->setBounds(r.removeFromTop(comboBoxHeight));
         
         if (foleys::LevelMeter* aLevelMeter = dynamic_cast<foleys::LevelMeter*> (components[i]))
         {
@@ -199,12 +199,14 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         controlLine->setSliderStyle(Slider::LinearVertical);
         controlLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
         controlLine->setLookAndFeel(dhl.get());
-        if (i == 4 || i == 1)
+        if (i != 0)
             controlLine->setColour(Slider::thumbColourId, (i == 4) ? Colour(0xFF2E8B00) : Colour(0xFFCB8035));
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);
         SliderAttachment* controlLineSliderAttachment;
         sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *controlLine));
         addAndMakeVisible(controlLine);
+
+        processor.visualiser.addControlLine(controlLine);
     }
 
     //======================================
@@ -227,14 +229,14 @@ void Level2Editor::resized()
     processor.visualiser.setBounds(rVis);
 
     rVis = getLocalBounds().reduced(editorMargin);
-    controlLines[0]->setBounds(rVis.removeFromLeft(20).removeFromTop(rVis.getHeight() / 2)); // Threshold
+    controlLines[0]->setBounds(rVis.removeFromLeft(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Threshold
 
     rVis = getLocalBounds().reduced(editorMargin);
-    controlLines[1]->setBounds(rVis.removeFromRight(20).removeFromTop(rVis.getHeight() * 0.75).withTrimmedTop(rVis.getHeight() * 0.25)); // Makeup Gain
+    controlLines[1]->setBounds(rVis.removeFromRight(60).removeFromLeft(20).removeFromTop(rVis.getHeight() * 0.75).withTrimmedTop(rVis.getHeight() * 0.25).expanded(0, 10)); // Makeup Gain
 
     rVis = getLocalBounds().reduced(editorMargin);
-    controlLines[2]->setBounds(rVis.removeFromLeft(rVis.getHeight() / 2 + 10).removeFromRight(20).removeFromTop(rVis.getHeight() / 2)); // Ratio
-    controlLines[2]->setTransform(AffineTransform::verticalFlip(195));
+    controlLines[2]->setBounds(rVis.removeFromLeft(rVis.getHeight() / 2 + 10).removeFromRight(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Ratio
+    controlLines[2]->setTransform(AffineTransform::verticalFlip(182));
 }
 
 //============================= Main Editor ====================================
@@ -259,14 +261,14 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     over->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.15));
     std::unique_ptr<Drawable> down = d->createCopy();
     down->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15));
-    buttons[0]->setImages(normal.get(), over.get(), down.get(), d.get());
+    powerButton->setImages(normal.get(), over.get(), down.get(), d.get());
     const AudioProcessorParameterWithID* buttonParameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[5]);
     ButtonAttachment* powerButtonAttachment;
     buttonAttachments.add(powerButtonAttachment = new ButtonAttachment(processor.parameters.valueTreeState, buttonParameter->paramID, *powerButton));
     addAndMakeVisible(powerButton);
     powerButton->setClickingTogglesState(true);
     Rectangle<int> r = getLocalBounds();
-    powerButton->setBounds(r.removeFromBottom(30).removeFromRight(30));
+    powerButton->setBounds(r.removeFromBottom(30).removeFromRight(30)); // TODO: Should be done in resized()
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
@@ -282,5 +284,5 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 {
     Rectangle<int> r = getLocalBounds();
     tabs.setBounds(r);
-    //buttons[0]->setBounds(r.removeFromBottom(30).removeFromRight(30));
+    //buttons.getLast()->setBounds(r.removeFromBottom(30).removeFromRight(30));
 }

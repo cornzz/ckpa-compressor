@@ -93,10 +93,11 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     bufferBefore.makeCopyOf(buffer);
     
     AudioBuffer<float> bufferGainReduction;
-    bufferGainReduction.makeCopyOf(buffer);
+    if (level1active)
+        bufferGainReduction.makeCopyOf(buffer);
 
     // Don't compress if bypass activated
-    if (!(bool)paramBypass.getTargetValue()) {
+    if (!(bool) paramBypass.getTargetValue()) {
         mixedDownInput.clear();
         for (int channel = 0; channel < numInputChannels; ++channel)
             mixedDownInput.addFrom(0, 0, buffer, channel, 0, numSamples, 1.0f / numInputChannels);
@@ -137,22 +138,27 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 float oldValue = buffer.getSample(channel, sample);
                 float newValue = oldValue * control;
                 buffer.setSample(channel, sample, newValue);
-                bufferGainReduction.setSample(channel, sample, oldValue - newValue);
+                if (level1active)
+                    bufferGainReduction.setSample(channel, sample, oldValue - newValue);
             }
         }
     }
     else {
-        for (int sample = 0; sample < numSamples; ++sample) {
-            for (int channel = 0; channel < numInputChannels; ++channel) {
-                bufferGainReduction.setSample(channel, sample, 0);
+        if (level1active) {
+            for (int sample = 0; sample < numSamples; ++sample) {
+                for (int channel = 0; channel < numInputChannels; ++channel) {
+                    bufferGainReduction.setSample(channel, sample, 0);
+                }
             }
         }
     }
 
-    // Push signal to level metersources
-    meterSourceInput.measureBlock(bufferBefore);
-    meterSourceOutput.measureBlock(buffer);
-    meterSourceGainReduction.measureBlock(bufferGainReduction);    
+    if (level1active) // Push signal to level metersources
+    {
+        meterSourceInput.measureBlock(bufferBefore);
+        meterSourceOutput.measureBlock(buffer);
+        meterSourceGainReduction.measureBlock(bufferGainReduction);
+    }
 
     // Push signal to visualiser buffer
     visualiser.pushBuffer(bufferBefore, buffer);

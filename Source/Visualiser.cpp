@@ -116,5 +116,10 @@ void Visualiser::paint(Graphics& g)
 
 void Visualiser::addControlLine(Slider* controlLine)
 {
-    controlLines.add(controlLine); // TODO: throws error on exit
+    controlLines.add(controlLine);
+}
+
+void Visualiser::sliderValueChanged(Slider* slider)
+{
+    repaint(); // Necessary so the line doesn't lag behind
 }

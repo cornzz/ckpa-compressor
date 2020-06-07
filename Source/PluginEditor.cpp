@@ -51,40 +51,6 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
                 editorHeight += sliderHeight;
             }
 
-            //======================================
-
-            //else if (processor.parameters.parameterTypes[i] == "ToggleButton") {
-            //    ToggleButton* aButton;
-            //    toggles.add(aButton = new ToggleButton());
-            //    aButton->setToggleState(parameter->getDefaultValue(), dontSendNotification);
-
-            //    ButtonAttachment* aButtonAttachment;
-            //    buttonAttachments.add(aButtonAttachment =
-            //        new ButtonAttachment(processor.parameters.valueTreeState, parameter->paramID, *aButton));
-
-            //    components.add(aButton);
-            //    editorHeight += buttonHeight;
-            //}
-
-            ////======================================
-
-            //else if (processor.parameters.parameterTypes[i] == "ComboBox") {
-            //    ComboBox* aComboBox;
-            //    comboBoxes.add(aComboBox = new ComboBox());
-            //    aComboBox->setEditableText(false);
-            //    aComboBox->setJustificationType(Justification::left);
-            //    aComboBox->addItemList(processor.parameters.comboBoxItemLists[comboBoxCounter++], 1);
-
-            //    ComboBoxAttachment* aComboBoxAttachment;
-            //    comboBoxAttachments.add(aComboBoxAttachment =
-            //        new ComboBoxAttachment(processor.parameters.valueTreeState, parameter->paramID, *aComboBox));
-
-            //    components.add(aComboBox);
-            //    editorHeight += comboBoxHeight;
-            //}
-
-            //======================================
-
             Label* aLabel;
             labels.add(aLabel = new Label(parameter->name, parameter->name));
             aLabel->attachToComponent(components.getLast(), true);
@@ -163,12 +129,6 @@ void Level1Editor::resized()
     for (int i = 0; i < components.size(); ++i) {
         if (Slider* aSlider = dynamic_cast<Slider*> (components[i]))
             components[i]->setBounds(r.removeFromTop(sliderHeight));
-
-        //if (ToggleButton* aButton = dynamic_cast<ToggleButton*> (components[i]))
-        //    components[i]->setBounds(r.removeFromTop(buttonHeight));
-
-        //if (ComboBox* aComboBox = dynamic_cast<ComboBox*> (components[i]))
-        //    components[i]->setBounds(r.removeFromTop(comboBoxHeight));
         
         if (foleys::LevelMeter* aLevelMeter = dynamic_cast<foleys::LevelMeter*> (components[i]))
         {
@@ -190,7 +150,6 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     //======================================
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
-    dhl = std::make_unique<DraggableHorizontalLine>();
     int ind[] = { 0, 4, 1 };
     for (int i : ind)
     {
@@ -198,7 +157,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         controlLines.add(controlLine = new Slider());
         controlLine->setSliderStyle(Slider::LinearVertical);
         controlLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
-        controlLine->setLookAndFeel(dhl.get());
+        controlLine->setLookAndFeel(&dhl);
         if (i != 0)
             controlLine->setColour(Slider::thumbColourId, (i == 4) ? Colour(0xFF2E8B00) : Colour(0xFFCB8035));
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);
@@ -206,6 +165,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *controlLine));
         addAndMakeVisible(controlLine);
 
+        controlLine->addListener(&processor.visualiser);
         processor.visualiser.addControlLine(controlLine);
     }
 
@@ -244,7 +204,7 @@ void Level2Editor::resized()
 Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_compressorAudioProcessor& p)
     : AudioProcessorEditor(&p),
     processor(p),
-    tabs(p)
+    tabs(p, new Level1Editor(p), new Level2Editor(p), new Level1Editor(p))
 {
     addAndMakeVisible(tabs);
     setSize(editorWidth, 375);

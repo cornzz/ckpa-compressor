@@ -24,6 +24,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "MainTabbedComponent.h"
 
 //==============================================================================
 
@@ -89,7 +90,7 @@ public:
 private:
     Ckpa_compressorAudioProcessor& processor;
 
-    std::unique_ptr<DraggableHorizontalLine> dhl;
+    DraggableHorizontalLine dhl;
     OwnedArray<Slider> controlLines;
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
@@ -99,42 +100,6 @@ private:
         editorMargin = 10,
         editorPadding = 10,
     };
-};
-
-//==============================================================================
-
-struct MainTabbedComponent : public TabbedComponent
-{
-    class TabsLookAndFeel : public LookAndFeel_V4
-    {
-        int getTabButtonSpaceAroundImage() override 
-        { 
-            return 4;
-        }
-    };
-
-public:
-    MainTabbedComponent(Ckpa_compressorAudioProcessor& p) : TabbedComponent(TabbedButtonBar::TabsAtBottom), 
-        processor(p)
-    {
-        auto colour = findColour(ResizableWindow::backgroundColourId);
-
-        addTab("Level 1", colour, new Level1Editor(p), true);
-        addTab("Level 2", colour, new Level2Editor(p), true);
-        addTab("Level 3", colour, new Level1Editor(p), true);
-        setOutline(0.0f);
-        setLookAndFeel(new TabsLookAndFeel());
-    }
-
-    void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
-    {
-        processor.level1active = (newCurrentTabName == "Level 1") ? true : false;
-    }
-
-private:
-    Ckpa_compressorAudioProcessor& processor;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainTabbedComponent)
 };
 
 //==============================================================================
@@ -156,16 +121,15 @@ private:
     // access the processor object that created it.
     Ckpa_compressorAudioProcessor& processor;
 
-    OwnedArray<DrawableButton> buttons;
-    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-    OwnedArray<ButtonAttachment> buttonAttachments;
-
     enum {
         editorWidth = 500,
         editorMargin = 10,
         editorPadding = 10,
     };
 
+    OwnedArray<DrawableButton> buttons;
+    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
+    OwnedArray<ButtonAttachment> buttonAttachments;
     std::string powerButtonSVG = "<svg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'><path d='M0 0h24v24H0z' fill='none'/><path d='M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z'/></svg>";
 
     MainTabbedComponent tabs;

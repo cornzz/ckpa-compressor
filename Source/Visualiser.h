@@ -32,7 +32,8 @@
     The base methods are called by the overriding methods to draw the bottom 
     waveform, while the overriding methods draw the top waveform.
 */
-class Visualiser : public AudioVisualiserComponent
+class Visualiser : public AudioVisualiserComponent,
+    public Slider::Listener
 {
 public:
     Visualiser();
@@ -48,6 +49,7 @@ public:
     void paint(Graphics& g) override;
 
     void addControlLine(Slider* controlLine);
+    void sliderValueChanged(Slider* slider) override;
 
 private:
     struct ChannelInfo2
@@ -109,7 +111,7 @@ private:
     int numSamplesTop, inputSamplesPerBlockTop;
     Colour waveformColour2;
 
-    OwnedArray<Slider> controlLines;
+    Array<Slider*> controlLines;
 };
 
 //==============================================================================
@@ -123,32 +125,6 @@ public:
         float maxSliderPos,
         const Slider::SliderStyle style, Slider& slider) override
     {
-        //auto trackWidth = jmin(6.0f, width * 0.25f);
-
-        //Point<float> startPoint(x + width * 0.5f, height + y);
-
-        //Point<float> endPoint(startPoint.x, y);
-
-        //Path backgroundTrack;
-        //backgroundTrack.startNewSubPath(startPoint);
-        //backgroundTrack.lineTo(endPoint);
-        //g.setColour(slider.findColour(Slider::backgroundColourId));
-        //g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
-
-        //Path valueTrack;
-        //Point<float> minPoint, maxPoint, thumbPoint;
-        //
-        //auto kx = x + width * 0.5f;
-        //auto ky = sliderPos;
-
-        //minPoint = startPoint;
-        //maxPoint = { kx, ky };
-
-        //valueTrack.startNewSubPath(minPoint);
-        //valueTrack.lineTo(maxPoint);
-        //g.setColour(slider.findColour(Slider::trackColourId));
-        //g.strokePath(valueTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
-
         //Path p;
         //p.startNewSubPath(x, y);
         //p.lineTo(x + width, y);

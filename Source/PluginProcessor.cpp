@@ -19,7 +19,10 @@
 
   ==============================================================================
 */
-
+// stringstreams
+#include <iostream>
+#include <string>
+#include <sstream>
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "PluginParameters.h"
@@ -95,7 +98,6 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     AudioBuffer<float> bufferGainReduction;
     if (level1active)
         bufferGainReduction.makeCopyOf(buffer);
-
     // Don't compress if bypass activated
     if (!(bool) paramBypass.getTargetValue()) {
         mixedDownInput.clear();
@@ -138,8 +140,9 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 float oldValue = buffer.getSample(channel, sample);
                 float newValue = oldValue * control;
                 buffer.setSample(channel, sample, newValue);
+                float reductionValue = makeupGain < 0 ? oldValue - newValue : 0;
                 if (level1active)
-                    bufferGainReduction.setSample(channel, sample, oldValue - newValue);
+                    bufferGainReduction.setSample(channel, sample, reductionValue);
             }
         }
     }

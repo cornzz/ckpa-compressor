@@ -41,7 +41,7 @@ private:
 	foleys::LevelMeterLookAndFeel lnf;
     foleys::LevelMeter inputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
     foleys::LevelMeter outputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
-    foleys::LevelMeter gainReductionMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal | foleys::LevelMeter::HorizontalLeft };
+    foleys::LevelMeter gainReductionMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal | foleys::LevelMeter::HorizontalRight };
 
     enum {
         editorWidth = 500,

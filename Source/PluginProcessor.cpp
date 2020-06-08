@@ -140,7 +140,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 float oldValue = buffer.getSample(channel, sample);
                 float newValue = oldValue * control;
                 buffer.setSample(channel, sample, newValue);
-                float reductionValue = makeupGain < 0 ? oldValue - newValue : 0;
+                float reductionValue = control < 1 ? oldValue - newValue : 0;
                 if (level1active)
                     bufferGainReduction.setSample(channel, sample, reductionValue);
             }

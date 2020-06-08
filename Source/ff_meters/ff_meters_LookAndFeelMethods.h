@@ -592,23 +592,14 @@ void drawMeterBar (juce::Graphics& g,
                 horizontalGradient.addColour (0.75, findColour (foleys::LevelMeter::lmMeterGradientMidColour));
             }
             g.setGradientFill (horizontalGradient);*/
-            
 
-            /*if (meterType & foleys::LevelMeter::HorizontalLeft) {
-                g.fillRect(floored.withLeft(floored.getRight() - rmsDb * floored.getWidth() / infinity));
+            g.setColour(findColour(foleys::LevelMeter::lmMeterGradientLowColour));
+            if (meterType & foleys::LevelMeter::HorizontalRight) {
+                g.fillRect(floored.withLeft(floored.getX() + rmsDb * floored.getWidth() / infinity);
             }
-            else {
-                
-            }*/g.setColour(findColour(foleys::LevelMeter::lmMeterGradientLowColour));
-            if (meterType & foleys::LevelMeter::HorizontalLeft) {
-                //g.setColour(findColour(foleys::LevelMeter::lmMeterBackgroundColour));
-                g.fillRect(floored.withLeft((rmsDb * floored.getWidth()) / infinity));
-            }
-            else {
-                
+            else {                
                 g.fillRect(floored.withRight(floored.getRight() - rmsDb * floored.getWidth() / infinity));
             }
-
 
             if (peakDb > -49.0)
             {

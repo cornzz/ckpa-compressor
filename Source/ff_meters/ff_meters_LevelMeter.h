@@ -65,7 +65,7 @@ public:
                                    in the LevelMeterSource. \see LevelMeterSource::setReductionLevel */
         Minimal         = 0x0020, /**< For a stereo meter, this tries to save space by showing only one line tickmarks in the middle and no max numbers */
         MaxNumber       = 0x0040,  /**< To add level meter to Minimal, set this flag */
-        HorizontalLeft  = 0x0080
+        HorizontalRight  = 0x0080
     };
 
     enum ColourIds

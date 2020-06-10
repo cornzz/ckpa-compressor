@@ -27,7 +27,6 @@
 
 #include <JuceHeader.h>
 #include "PluginParameters.h"
-#include "Visualiser.h"
 
 //==============================================================================
 
@@ -83,6 +82,7 @@ public:
     AudioBuffer<float> mixedDownInput;
     AudioBuffer<float> bufferBefore;
     AudioBuffer<float> bufferAfter;
+    AudioBuffer<float> bufferGainReduction;
 
     float xl;
     float yl;

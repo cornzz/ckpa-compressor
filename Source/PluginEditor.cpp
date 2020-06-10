@@ -63,7 +63,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     }
 
     lnf.setColour(foleys::LevelMeter::lmBackgroundColour, getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.5));
-    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::ColourIds::trackColourId));
+    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::ColourIds::backgroundColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::ColourIds::thumbColourId));
 
@@ -204,7 +204,7 @@ void Level2Editor::resized()
 
     rVis = getLocalBounds().reduced(editorMargin);
     controlLines[2]->setBounds(rVis.removeFromLeft(rVis.getHeight() / 2 + 10).removeFromRight(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Ratio
-    controlLines[2]->setTransform(AffineTransform::verticalFlip(182));
+    controlLines[2]->setTransform(AffineTransform::verticalFlip(181));
 }
 
 //============================= Main Editor ====================================
@@ -215,7 +215,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     tabs(p, new Level1Editor(p), new Level2Editor(p), new Level1Editor(p))
 {
     addAndMakeVisible(tabs);
-    setSize(editorWidth, 375);
+    setSize(editorWidth, 382);
 
     //======================================
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
@@ -236,7 +236,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     addAndMakeVisible(powerButton);
     powerButton->setClickingTogglesState(true);
     Rectangle<int> r = getLocalBounds();
-    powerButton->setBounds(r.removeFromBottom(30).removeFromRight(30)); // TODO: Should be done in resized()
+    powerButton->setBounds(r.removeFromBottom(40).removeFromRight(40)); // TODO: Should be done in resized()
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
@@ -252,5 +252,5 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 {
     Rectangle<int> r = getLocalBounds();
     tabs.setBounds(r);
-    //buttons.getLast()->setBounds(r.removeFromBottom(30).removeFromRight(30));
+    //buttons.getLast()->setBounds(r.removeFromBottom(40).removeFromRight(40));
 }

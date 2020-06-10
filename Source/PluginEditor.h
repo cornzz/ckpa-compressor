@@ -25,6 +25,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "MainTabbedComponent.h"
+#include "Visualiser.h"
 
 //==============================================================================
 
@@ -77,9 +78,7 @@ private:
 };
 
 //==============================================================================
-/** Class for the second level tab content. 
-    PluginProcessor is owner of the Visualiser component.
-*/
+
 class Level2Editor : public Component,
     public ChangeListener
 {
@@ -117,7 +116,7 @@ public:
     Ckpa_compressorAudioProcessorEditor (Ckpa_compressorAudioProcessor&);
     ~Ckpa_compressorAudioProcessorEditor();
 
-    //==============================================================================
+    //======================================
 
     void paint (Graphics&) override;
     void resized() override;
@@ -137,11 +136,12 @@ private:
     OwnedArray<DrawableButton> buttons;
     typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
     OwnedArray<ButtonAttachment> buttonAttachments;
-    std::string powerButtonSVG = "<svg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'><path d='M0 0h24v24H0z' fill='none'/><path d='M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z'/></svg>";
+    String powerButtonSVG = "<svg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'><path d='M 0 0 h 24 v 24 H 0 z' fill='none'/><path d='M 13 3 h -2 v 10 h 2 z m 4.83 2.17 l -1.42 1.42 C 17.99 7.86 19 9.81 19 12 c 0 3.87 -3.13 7 -7 7 s -7 -3.13 -7 -7 c 0 -2.19 1.01 -4.14 2.58 -5.42 L 6.17 5.17 C 4.23 6.82 3 9.26 3 12 c 0 4.97 4.03 9 9 9 s 9 -4.03 9 -9 c 0 -2.74 -1.23 -5.18 -3.17 -6.83 z'/></svg>";
+    String powerButtonPath = "M 0 0 h 24 v 24 H 0 z M 13 3 h -2 v 10 h 2 z m 4.83 2.17 l -1.42 1.42 C 17.99 7.86 19 9.81 19 12 c 0 3.87 -3.13 7 -7 7 s -7 -3.13 -7 -7 c 0 -2.19 1.01 -4.14 2.58 -5.42 L 6.17 5.17 C 4.23 6.82 3 9.26 3 12 c 0 4.97 4.03 9 9 9 s 9 -4.03 9 -9 c 0 -2.74 -1.23 -5.18 -3.17 -6.83 z";
 
     MainTabbedComponent tabs;
 
-    //==============================================================================
+    //======================================
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Ckpa_compressorAudioProcessorEditor)
 };

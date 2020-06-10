@@ -125,6 +125,7 @@ public:
         float maxSliderPos,
         const Slider::SliderStyle style, Slider& slider) override
     {
+        // Visualise slider bounds
         //Path p;
         //p.startNewSubPath(x, y);
         //p.lineTo(x + width, y);

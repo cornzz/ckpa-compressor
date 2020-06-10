@@ -67,6 +67,9 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     //======================================
 
     mixedDownInput.setSize(1, samplesPerBlock);
+    bufferBefore.setSize(1, samplesPerBlock);
+    bufferAfter.setSize(1, samplesPerBlock);
+    bufferGainReduction.setSize(1, samplesPerBlock);
 
     inputLevel = 0.0f;
     ylPrev = 0.0f;
@@ -90,7 +93,6 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     // Create copy of buffer before compression
     bufferBefore.makeCopyOf(buffer);
     
-    AudioBuffer<float> bufferGainReduction;
     if (level1active)
         bufferGainReduction.makeCopyOf(buffer);
 

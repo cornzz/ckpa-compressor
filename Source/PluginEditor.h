@@ -77,18 +77,25 @@ private:
 };
 
 //==============================================================================
-
-class Level2Editor : public Component
+/** Class for the second level tab content. 
+    PluginProcessor is owner of the Visualiser component.
+*/
+class Level2Editor : public Component,
+    public ChangeListener
 {
 public:
     Level2Editor(Ckpa_compressorAudioProcessor&);
     ~Level2Editor();
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void paint(Graphics&) override;
     void resized() override;
 
 private:
     Ckpa_compressorAudioProcessor& processor;
+
+    Visualiser visualiser;
 
     DraggableHorizontalLine dhl;
     OwnedArray<Slider> controlLines;

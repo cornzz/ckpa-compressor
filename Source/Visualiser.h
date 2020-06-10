@@ -42,7 +42,7 @@ public:
     void setBufferSize(int newNumSamples);
     void clear();
     void pushBufferTop(const float** d, int numChannels, int num);
-    void pushBuffer(const AudioBuffer<float>& buffer, const AudioBuffer<float>& buffer2);
+    void pushBuffer(const AudioBuffer<float>& bufferBottom, const AudioBuffer<float>& bufferTop);
     void setSamplesPerBlock(int newSamplesPerPixel) noexcept;
 
     void setColours(Colour bk, Colour fg) noexcept;

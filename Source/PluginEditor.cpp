@@ -66,7 +66,6 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::ColourIds::trackColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::ColourIds::thumbColourId));
-    lnf.setColour(foleys::LevelMeter::lmTicksColour, Colours::black);
 
     //======================================
     //Levelmeter for input
@@ -145,7 +144,9 @@ void Level1Editor::resized()
 
 Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
-    addAndMakeVisible(processor.visualiser);
+    processor.addChangeListener(this);
+    visualiser.clear();
+    addAndMakeVisible(visualiser);
     
     //======================================
 
@@ -154,19 +155,19 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     for (int i : ind)
     {
         Slider* controlLine;
-        controlLines.add(controlLine = new Slider());
-        controlLine->setSliderStyle(Slider::LinearVertical);
-        controlLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
+        controlLines.add(controlLine = new Slider(Slider::LinearVertical, Slider::NoTextBox));
         controlLine->setLookAndFeel(&dhl);
         if (i != 0)
             controlLine->setColour(Slider::thumbColourId, (i == 4) ? Colour(0xFF2E8B00) : Colour(0xFFCB8035));
+        else
+            controlLine->setColour(Slider::thumbColourId, findColour(Slider::thumbColourId).darker(0.1));
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);
         SliderAttachment* controlLineSliderAttachment;
         sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *controlLine));
         addAndMakeVisible(controlLine);
 
-        controlLine->addListener(&processor.visualiser);
-        processor.visualiser.addControlLine(controlLine);
+        controlLine->addListener(&visualiser);
+        visualiser.addControlLine(controlLine);
     }
 
     //======================================
@@ -176,6 +177,13 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 
 Level2Editor::~Level2Editor()
 {
+    processor.removeChangeListener(this);
+}
+
+void Level2Editor::changeListenerCallback(ChangeBroadcaster* source)
+{
+    Ckpa_compressorAudioProcessor* p = dynamic_cast<Ckpa_compressorAudioProcessor*> (source);
+    visualiser.pushBuffer(p->bufferBefore, p->bufferAfter);
 }
 
 void Level2Editor::paint(Graphics& g)
@@ -186,7 +194,7 @@ void Level2Editor::paint(Graphics& g)
 void Level2Editor::resized()
 {
     Rectangle<int> rVis = getLocalBounds().reduced(editorMargin);
-    processor.visualiser.setBounds(rVis);
+    visualiser.setBounds(rVis);
 
     rVis = getLocalBounds().reduced(editorMargin);
     controlLines[0]->setBounds(rVis.removeFromLeft(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Threshold

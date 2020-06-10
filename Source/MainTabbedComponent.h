@@ -38,10 +38,10 @@ public:
     {
     }
 
-    Rectangle<int> getActiveArea() 
+    Rectangle<int> getActiveArea() const
     {
         auto r = getLocalBounds();
-        auto leftRightMargin = 20;
+        auto leftRightMargin = 50;
 
         r.removeFromRight(leftRightMargin);
         r.removeFromLeft(leftRightMargin);

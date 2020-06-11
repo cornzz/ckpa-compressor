@@ -32,8 +32,7 @@
     The base methods are called by the overriding methods to draw the bottom 
     waveform, while the overriding methods draw the top waveform.
 */
-class Visualiser : public AudioVisualiserComponent,
-    public Slider::Listener
+class Visualiser : public AudioVisualiserComponent
 {
 public:
     Visualiser();
@@ -47,9 +46,6 @@ public:
 
     void setColours(Colour bk, Colour fg) noexcept;
     void paint(Graphics& g) override;
-
-    void addControlLine(Slider* controlLine);
-    void sliderValueChanged(Slider* slider) override;
 
 private:
     struct ChannelInfo2
@@ -110,13 +106,11 @@ private:
     OwnedArray<ChannelInfo2> channelsTop;
     int numSamplesTop, inputSamplesPerBlockTop;
     Colour waveformColour2;
-
-    Array<Slider*> controlLines;
 };
 
 //==============================================================================
 
-class DraggableHorizontalLine : public LookAndFeel_V4
+class ThumbOnlySlider : public LookAndFeel_V4
 {
 public:
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height,

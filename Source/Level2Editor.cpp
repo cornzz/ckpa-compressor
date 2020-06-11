@@ -30,26 +30,26 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     visualiser.clear();
     addAndMakeVisible(visualiser);
 
-    //======================================
+    //============ Control Lines ===========
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
-    int ind[] = { 0, 4, 1 };
+    int ind[] = { 0, 1, 4 }; // Indices in processor parameter array (0 = thresh, 1 = ratio, 4 = makeupg)
     for (int i : ind)
     {
-        Slider* controlLine;
-        controlLines.add(controlLine = new Slider(Slider::LinearVertical, Slider::NoTextBox));
-        controlLine->setLookAndFeel(&dhl);
-        if (i != 0)
-            controlLine->setColour(Slider::thumbColourId, (i == 4) ? Colour(0xFF2E8B00) : Colour(0xFFCB8035));
-        else
-            controlLine->setColour(Slider::thumbColourId, findColour(Slider::thumbColourId).darker(0.1));
+        Slider* cls;
+        controlLineSliders.add(cls = new Slider(Slider::LinearVertical, Slider::NoTextBox));
+
+        auto colour = (i == 0) ? findColour(Slider::thumbColourId).darker(0.1) : ((i == 1) ? Colour(0xFFCB8035) : Colour(0xFF2E8B00));
+        cls->setColour(Slider::thumbColourId, colour);
+        cls->setLookAndFeel(&tos);
+        cls->setPopupDisplayEnabled(true, false, this);
+
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);
         SliderAttachment* controlLineSliderAttachment;
-        sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *controlLine));
-        addAndMakeVisible(controlLine);
-
-        controlLine->addListener(&visualiser);
-        visualiser.addControlLine(controlLine);
+        sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *cls));
+        cls->addListener(this);
+        
+        addAndMakeVisible(cls);
     }
 }
 
@@ -69,18 +69,63 @@ void Level2Editor::paint(Graphics& g)
     g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
 }
 
+void Level2Editor::paintOverChildren(Graphics& g)
+{
+    auto r = getLocalBounds().reduced(editorMargin).toFloat();
+
+    for (int i : {0, 1, 2})
+    {
+        Slider* cls = controlLineSliders.getUnchecked(i);
+
+        float sliderPos = cls->getPositionOfValue(cls->getValue());
+
+        g.setColour(cls->findColour(Slider::thumbColourId));
+        if (i == 0 || i == 2) { // threshold or makeup gain line
+            int sliderTop = cls->getY();
+            g.drawHorizontalLine(sliderTop + sliderPos, r.getX(), r.getRight());
+        }
+        else { // ratio line
+            int sliderCentreX = cls->getX() + cls->getWidth() / 2;
+            Line<float> line(Point<float>(r.getX(), r.getY() + r.getHeight() / 2), 
+                Point<float>(sliderCentreX, sliderPos).transformedBy(cls->getTransform()));
+            g.drawLine(line, 1.0f);
+        }
+    }
+}
+
 void Level2Editor::resized()
 {
     Rectangle<int> rVis = getLocalBounds().reduced(editorMargin);
     visualiser.setBounds(rVis);
 
-    rVis = getLocalBounds().reduced(editorMargin);
-    controlLines[0]->setBounds(rVis.removeFromLeft(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Threshold
+    //======================================
 
     rVis = getLocalBounds().reduced(editorMargin);
-    controlLines[1]->setBounds(rVis.removeFromRight(60).removeFromLeft(20).removeFromTop(rVis.getHeight() * 0.75).withTrimmedTop(rVis.getHeight() * 0.25).expanded(0, 10)); // Makeup Gain
+    rVis = rVis.removeFromLeft(20)
+        .removeFromTop(rVis.getHeight() / 2)
+        .expanded(0, 10);
+    controlLineSliders[0]->setBounds(rVis); // Threshold
 
     rVis = getLocalBounds().reduced(editorMargin);
-    controlLines[2]->setBounds(rVis.removeFromLeft(rVis.getHeight() / 2 + 10).removeFromRight(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Ratio
-    controlLines[2]->setTransform(AffineTransform::verticalFlip(181));
+    rVis = rVis.removeFromLeft(rVis.getHeight() / 2 + 10)
+        .removeFromRight(20)
+        .removeFromTop(rVis.getHeight() / 2)
+        .expanded(0, 10);
+    controlLineSliders[1]->setBounds(rVis); // Ratio
+    controlLineSliders[1]->setTransform(AffineTransform::verticalFlip(181));
+
+    rVis = getLocalBounds().reduced(editorMargin);
+    rVis = rVis.removeFromRight(60)
+        .removeFromLeft(20)
+        .removeFromTop(rVis.getHeight() * 0.75)
+        .withTrimmedTop(rVis.getHeight() * 0.25)
+        .expanded(0, 10);
+    controlLineSliders[2]->setBounds(rVis); // Makeup Gain
+}
+
+//==============================================================================
+
+void Level2Editor::sliderValueChanged(Slider* slider)
+{
+    repaint(); // Necessary to prevent the control lines from lagging behind
 }

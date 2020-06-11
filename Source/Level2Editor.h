@@ -29,7 +29,8 @@
 //==============================================================================
 
 class Level2Editor : public Component,
-    public ChangeListener
+    public ChangeListener,
+    public Slider::Listener
 {
 public:
     Level2Editor(Ckpa_compressorAudioProcessor&);
@@ -38,15 +39,18 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void paint(Graphics&) override;
+    void paintOverChildren(Graphics& g) override;
     void resized() override;
+
+    void sliderValueChanged(Slider* slider) override;
 
 private:
     Ckpa_compressorAudioProcessor& processor;
 
     Visualiser visualiser;
 
-    DraggableHorizontalLine dhl;
-    OwnedArray<Slider> controlLines;
+    ThumbOnlySlider tos;
+    OwnedArray<Slider> controlLineSliders;
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
 

@@ -25,88 +25,9 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "MainTabbedComponent.h"
-#include "Visualiser.h"
-
-//==============================================================================
-
-class Level1Editor : public Component
-{
-public:
-    Level1Editor(Ckpa_compressorAudioProcessor&);
-    ~Level1Editor();
-
-    void paint(Graphics&) override;
-    void resized() override;
-
-private:
-    Ckpa_compressorAudioProcessor& processor;
-	foleys::LevelMeterLookAndFeel lnf;
-    foleys::LevelMeter inputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
-    foleys::LevelMeter outputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
-    foleys::LevelMeter gainReductionMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal | foleys::LevelMeter::HorizontalRight };
-
-    enum {
-        editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
-
-        sliderTextEntryBoxWidth = 100,
-        sliderTextEntryBoxHeight = 25,
-        sliderHeight = 25,
-        buttonHeight = 25,
-        comboBoxHeight = 25,
-        levelMeterHeight = 20,
-        labelWidth = 100,
-    };
-
-    //======================================
-
-    OwnedArray<Slider> sliders;
-    OwnedArray<ToggleButton> toggles;
-    OwnedArray<ComboBox> comboBoxes;
-
-    OwnedArray<Label> labels;
-    Array<Component*> components;
-
-    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-    typedef AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
-
-    OwnedArray<SliderAttachment> sliderAttachments;
-    OwnedArray<ButtonAttachment> buttonAttachments;
-    OwnedArray<ComboBoxAttachment> comboBoxAttachments;
-};
-
-//==============================================================================
-
-class Level2Editor : public Component,
-    public ChangeListener
-{
-public:
-    Level2Editor(Ckpa_compressorAudioProcessor&);
-    ~Level2Editor();
-
-    void changeListenerCallback(ChangeBroadcaster* source) override;
-
-    void paint(Graphics&) override;
-    void resized() override;
-
-private:
-    Ckpa_compressorAudioProcessor& processor;
-
-    Visualiser visualiser;
-
-    DraggableHorizontalLine dhl;
-    OwnedArray<Slider> controlLines;
-    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-    OwnedArray<SliderAttachment> sliderAttachments;
-
-    enum {
-        editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
-    };
-};
+#include "Level1Editor.h"
+#include "Level2Editor.h"
+#include "Level3Editor.h"
 
 //==============================================================================
 

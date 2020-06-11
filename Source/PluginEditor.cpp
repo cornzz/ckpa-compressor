@@ -51,40 +51,6 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
                 editorHeight += sliderHeight;
             }
 
-            //======================================
-
-            //else if (processor.parameters.parameterTypes[i] == "ToggleButton") {
-            //    ToggleButton* aButton;
-            //    toggles.add(aButton = new ToggleButton());
-            //    aButton->setToggleState(parameter->getDefaultValue(), dontSendNotification);
-
-            //    ButtonAttachment* aButtonAttachment;
-            //    buttonAttachments.add(aButtonAttachment =
-            //        new ButtonAttachment(processor.parameters.valueTreeState, parameter->paramID, *aButton));
-
-            //    components.add(aButton);
-            //    editorHeight += buttonHeight;
-            //}
-
-            ////======================================
-
-            //else if (processor.parameters.parameterTypes[i] == "ComboBox") {
-            //    ComboBox* aComboBox;
-            //    comboBoxes.add(aComboBox = new ComboBox());
-            //    aComboBox->setEditableText(false);
-            //    aComboBox->setJustificationType(Justification::left);
-            //    aComboBox->addItemList(processor.parameters.comboBoxItemLists[comboBoxCounter++], 1);
-
-            //    ComboBoxAttachment* aComboBoxAttachment;
-            //    comboBoxAttachments.add(aComboBoxAttachment =
-            //        new ComboBoxAttachment(processor.parameters.valueTreeState, parameter->paramID, *aComboBox));
-
-            //    components.add(aComboBox);
-            //    editorHeight += comboBoxHeight;
-            //}
-
-            //======================================
-
             Label* aLabel;
             labels.add(aLabel = new Label(parameter->name, parameter->name));
             aLabel->attachToComponent(components.getLast(), true);
@@ -96,11 +62,9 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         }
     }
 
-    lnf.setColour(foleys::LevelMeter::lmBackgroundColour, getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.5));
-    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::ColourIds::trackColourId));
+    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::backgroundColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::ColourIds::thumbColourId));
-    lnf.setColour(foleys::LevelMeter::lmTicksColour, Colours::black);
+    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::thumbColourId));
 
     //======================================
     //Levelmeter for input
@@ -163,12 +127,6 @@ void Level1Editor::resized()
     for (int i = 0; i < components.size(); ++i) {
         if (Slider* aSlider = dynamic_cast<Slider*> (components[i]))
             components[i]->setBounds(r.removeFromTop(sliderHeight));
-
-        //if (ToggleButton* aButton = dynamic_cast<ToggleButton*> (components[i]))
-        //    components[i]->setBounds(r.removeFromTop(buttonHeight));
-
-        //if (ComboBox* aComboBox = dynamic_cast<ComboBox*> (components[i]))
-        //    components[i]->setBounds(r.removeFromTop(comboBoxHeight));
         
         if (foleys::LevelMeter* aLevelMeter = dynamic_cast<foleys::LevelMeter*> (components[i]))
         {
@@ -185,28 +143,30 @@ void Level1Editor::resized()
 
 Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
-    addAndMakeVisible(processor.visualiser);
+    processor.addChangeListener(this);
+    visualiser.clear();
+    addAndMakeVisible(visualiser);
     
     //======================================
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
-    dhl = std::make_unique<DraggableHorizontalLine>();
     int ind[] = { 0, 4, 1 };
     for (int i : ind)
     {
         Slider* controlLine;
-        controlLines.add(controlLine = new Slider());
-        controlLine->setSliderStyle(Slider::LinearVertical);
-        controlLine->setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
-        controlLine->setLookAndFeel(dhl.get());
+        controlLines.add(controlLine = new Slider(Slider::LinearVertical, Slider::NoTextBox));
+        controlLine->setLookAndFeel(&dhl);
         if (i != 0)
             controlLine->setColour(Slider::thumbColourId, (i == 4) ? Colour(0xFF2E8B00) : Colour(0xFFCB8035));
+        else
+            controlLine->setColour(Slider::thumbColourId, findColour(Slider::thumbColourId).darker(0.1));
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);
         SliderAttachment* controlLineSliderAttachment;
         sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *controlLine));
         addAndMakeVisible(controlLine);
 
-        processor.visualiser.addControlLine(controlLine);
+        controlLine->addListener(&visualiser);
+        visualiser.addControlLine(controlLine);
     }
 
     //======================================
@@ -216,6 +176,13 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 
 Level2Editor::~Level2Editor()
 {
+    processor.removeChangeListener(this);
+}
+
+void Level2Editor::changeListenerCallback(ChangeBroadcaster* source)
+{
+    Ckpa_compressorAudioProcessor* p = dynamic_cast<Ckpa_compressorAudioProcessor*> (source);
+    visualiser.pushBuffer(p->bufferBefore, p->bufferAfter);
 }
 
 void Level2Editor::paint(Graphics& g)
@@ -226,7 +193,7 @@ void Level2Editor::paint(Graphics& g)
 void Level2Editor::resized()
 {
     Rectangle<int> rVis = getLocalBounds().reduced(editorMargin);
-    processor.visualiser.setBounds(rVis);
+    visualiser.setBounds(rVis);
 
     rVis = getLocalBounds().reduced(editorMargin);
     controlLines[0]->setBounds(rVis.removeFromLeft(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Threshold
@@ -236,7 +203,7 @@ void Level2Editor::resized()
 
     rVis = getLocalBounds().reduced(editorMargin);
     controlLines[2]->setBounds(rVis.removeFromLeft(rVis.getHeight() / 2 + 10).removeFromRight(20).removeFromTop(rVis.getHeight() / 2).expanded(0, 10)); // Ratio
-    controlLines[2]->setTransform(AffineTransform::verticalFlip(182));
+    controlLines[2]->setTransform(AffineTransform::verticalFlip(181));
 }
 
 //============================= Main Editor ====================================
@@ -244,31 +211,36 @@ void Level2Editor::resized()
 Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_compressorAudioProcessor& p)
     : AudioProcessorEditor(&p),
     processor(p),
-    tabs(p)
+    tabs(p, new Level1Editor(p), new Level2Editor(p), new Level1Editor(p))
 {
     addAndMakeVisible(tabs);
-    setSize(editorWidth, 375);
+    setSize(editorWidth, 382);
 
     //======================================
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
 
-    DrawableButton* powerButton;
-    buttons.add(powerButton = new DrawableButton("powerButton", DrawableButton::ImageFitted));
-    std::unique_ptr<Drawable> d = Drawable::createFromSVG(*XmlDocument::parse(powerButtonSVG));
-    std::unique_ptr<Drawable> normal = d->createCopy();
-    normal->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId));
-    std::unique_ptr<Drawable> over = d->createCopy();
-    over->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.15));
-    std::unique_ptr<Drawable> down = d->createCopy();
-    down->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15));
-    powerButton->setImages(normal.get(), over.get(), down.get(), d.get());
+    ShapeButton* powerButton;
+    buttons.add(powerButton = new ShapeButton("powerButton",
+        getLookAndFeel().findColour(Slider::thumbColourId),
+        getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.1),
+        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15)));
+    // On and off colour sets are switched around, since this used to be the "bypass button"
+    powerButton->setOnColours(getLookAndFeel().findColour(ResizableWindow::backgroundColourId),
+        getLookAndFeel().findColour(ResizableWindow::backgroundColourId).brighter(0.1),
+        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.2));
+    powerButton->shouldUseOnColours(true);
+    Path path;
+    path.restoreFromString(powerButtonPath);
+    powerButton->setShape(path, true, true, true);
+
     const AudioProcessorParameterWithID* buttonParameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[5]);
     ButtonAttachment* powerButtonAttachment;
     buttonAttachments.add(powerButtonAttachment = new ButtonAttachment(processor.parameters.valueTreeState, buttonParameter->paramID, *powerButton));
     addAndMakeVisible(powerButton);
     powerButton->setClickingTogglesState(true);
+
     Rectangle<int> r = getLocalBounds();
-    powerButton->setBounds(r.removeFromBottom(30).removeFromRight(30)); // TODO: Should be done in resized()
+    powerButton->setBounds(r.removeFromBottom(39).removeFromRight(39)); // TODO: Should be done in resized()
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
@@ -284,5 +256,5 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 {
     Rectangle<int> r = getLocalBounds();
     tabs.setBounds(r);
-    //buttons.getLast()->setBounds(r.removeFromBottom(30).removeFromRight(30));
+    //buttons.getLast()->setBounds(r.removeFromBottom(40).removeFromRight(40));
 }

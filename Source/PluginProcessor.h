@@ -27,11 +27,11 @@
 
 #include <JuceHeader.h>
 #include "PluginParameters.h"
-#include "Visualiser.h"
 
 //==============================================================================
 
-class Ckpa_compressorAudioProcessor  : public AudioProcessor
+class Ckpa_compressorAudioProcessor  : public AudioProcessor,
+    public ChangeBroadcaster
 {
 public:
     //==============================================================================
@@ -79,7 +79,11 @@ public:
 
     //==============================================================================
 
-    AudioSampleBuffer mixedDownInput;
+    AudioBuffer<float> mixedDownInput;
+    AudioBuffer<float> bufferBefore;
+    AudioBuffer<float> bufferAfter;
+    AudioBuffer<float> bufferGainReduction;
+
     float xl;
     float yl;
     float xg;
@@ -109,10 +113,6 @@ public:
     foleys::LevelMeterSource meterSourceGainReduction;
 
     bool level1active = false;
-
-    //====================================== Level 2
-    
-    Visualiser visualiser;
 
 private:
 

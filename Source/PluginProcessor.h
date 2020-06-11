@@ -102,7 +102,7 @@ public:
     PluginParametersManager parameters;
 
     PluginParameterLinSlider paramThreshold;
-    PluginParameterLinSlider paramRatio;
+    PluginParameterLogSlider paramRatio;
     PluginParameterLinSlider paramAttack;
     PluginParameterLinSlider paramRelease;
     PluginParameterLinSlider paramMakeupGain;

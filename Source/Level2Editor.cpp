@@ -42,6 +42,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         auto colour = (i == 0) ? findColour(Slider::thumbColourId).darker(0.1) : ((i == 1) ? Colour(0xFFCB8035) : Colour(0xFF2E8B00));
         cls->setColour(Slider::thumbColourId, colour);
         cls->setLookAndFeel(&tos);
+        cls->setPopupDisplayEnabled(true, false, this);
 
         const AudioProcessorParameterWithID* controlLineParamter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i]);
         SliderAttachment* controlLineSliderAttachment;

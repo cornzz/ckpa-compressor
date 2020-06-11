@@ -62,10 +62,9 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         }
     }
 
-    lnf.setColour(foleys::LevelMeter::lmBackgroundColour, getLookAndFeel().findColour(ResizableWindow::backgroundColourId).darker(0.5));
-    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::ColourIds::backgroundColourId));
+    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::backgroundColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::ColourIds::thumbColourId));
+    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::thumbColourId));
 
     //======================================
     //Levelmeter for input
@@ -220,23 +219,28 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     //======================================
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
 
-    DrawableButton* powerButton;
-    buttons.add(powerButton = new DrawableButton("powerButton", DrawableButton::ImageFitted));
-    std::unique_ptr<Drawable> d = Drawable::createFromSVG(*XmlDocument::parse(powerButtonSVG));
-    std::unique_ptr<Drawable> normal = d->createCopy();
-    normal->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId));
-    std::unique_ptr<Drawable> over = d->createCopy();
-    over->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.15));
-    std::unique_ptr<Drawable> down = d->createCopy();
-    down->replaceColour(Colours::black, getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15));
-    powerButton->setImages(normal.get(), over.get(), down.get(), d.get());
+    ShapeButton* powerButton;
+    buttons.add(powerButton = new ShapeButton("powerButton",
+        getLookAndFeel().findColour(Slider::thumbColourId),
+        getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.1),
+        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15)));
+    // On and off colour sets are switched around, since this used to be the "bypass button"
+    powerButton->setOnColours(getLookAndFeel().findColour(ResizableWindow::backgroundColourId),
+        getLookAndFeel().findColour(ResizableWindow::backgroundColourId).brighter(0.1),
+        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.2));
+    powerButton->shouldUseOnColours(true);
+    Path path;
+    path.restoreFromString(powerButtonPath);
+    powerButton->setShape(path, true, true, true);
+
     const AudioProcessorParameterWithID* buttonParameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[5]);
     ButtonAttachment* powerButtonAttachment;
     buttonAttachments.add(powerButtonAttachment = new ButtonAttachment(processor.parameters.valueTreeState, buttonParameter->paramID, *powerButton));
     addAndMakeVisible(powerButton);
     powerButton->setClickingTogglesState(true);
+
     Rectangle<int> r = getLocalBounds();
-    powerButton->setBounds(r.removeFromBottom(40).removeFromRight(40)); // TODO: Should be done in resized()
+    powerButton->setBounds(r.removeFromBottom(39).removeFromRight(39)); // TODO: Should be done in resized()
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()

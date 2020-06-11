@@ -133,11 +133,11 @@ private:
         editorPadding = 10,
     };
 
-    OwnedArray<DrawableButton> buttons;
+    OwnedArray<ShapeButton> buttons;
     typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
     OwnedArray<ButtonAttachment> buttonAttachments;
-    String powerButtonSVG = "<svg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'><path d='M 0 0 h 24 v 24 H 0 z' fill='none'/><path d='M 13 3 h -2 v 10 h 2 z m 4.83 2.17 l -1.42 1.42 C 17.99 7.86 19 9.81 19 12 c 0 3.87 -3.13 7 -7 7 s -7 -3.13 -7 -7 c 0 -2.19 1.01 -4.14 2.58 -5.42 L 6.17 5.17 C 4.23 6.82 3 9.26 3 12 c 0 4.97 4.03 9 9 9 s 9 -4.03 9 -9 c 0 -2.74 -1.23 -5.18 -3.17 -6.83 z'/></svg>";
-    String powerButtonPath = "M 0 0 h 24 v 24 H 0 z M 13 3 h -2 v 10 h 2 z m 4.83 2.17 l -1.42 1.42 C 17.99 7.86 19 9.81 19 12 c 0 3.87 -3.13 7 -7 7 s -7 -3.13 -7 -7 c 0 -2.19 1.01 -4.14 2.58 -5.42 L 6.17 5.17 C 4.23 6.82 3 9.26 3 12 c 0 4.97 4.03 9 9 9 s 9 -4.03 9 -9 c 0 -2.74 -1.23 -5.18 -3.17 -6.83 z";
+    // Refactored by hand, since the juce Path class doesnt support neither relative coordinate commands, nor h / v / s commands
+    String powerButtonPath = "m 0 0 l 25 0 l 25 25 l 0 25 l 25 25 l 25 0 z m 13 3 l 11 3 l 11 13 l 13 13 z m 17.83 5.17 l 16.41 6.59 c 17.99 7.86 19 9.81 19 12 c 19 15.87 15.87 19 12 19 c 8.13 19 5 15.87 5 12 c 5 9.81 6.01 7.86 7.58 6.58 l 6.17 5.17 c 4.23 6.82 3 9.26 3 12 c 3 16.97 7.03 21 12 21 c 16.97 21 21 16.97 21 12 c 21 9.26 19.77 6.82 17.83 5.17 z";
 
     MainTabbedComponent tabs;
 

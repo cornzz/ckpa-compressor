@@ -203,6 +203,7 @@ void Ckpa_compressorAudioProcessor::setStateInformation(const void* data, int si
 }
 
 //==============================================================================
+
 bool Ckpa_compressorAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)

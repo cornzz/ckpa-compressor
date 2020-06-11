@@ -37,10 +37,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
                 Slider* aSlider;
                 sliders.add(aSlider = new Slider());
                 aSlider->setTextValueSuffix(parameter->label);
-                aSlider->setTextBoxStyle(Slider::TextBoxLeft,
-                    false,
-                    sliderTextEntryBoxWidth,
-                    sliderTextEntryBoxHeight);
+                aSlider->setTextBoxStyle(Slider::TextBoxLeft, false, sliderTextEntryBoxWidth, sliderTextEntryBoxHeight);
 
                 SliderAttachment* aSliderAttachment;
                 sliderAttachments.add(aSliderAttachment =
@@ -61,46 +58,33 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         }
     }
 
+    //============ Level Meters ============
+
     lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::backgroundColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::thumbColourId));
+    String labelStrings[] = { "Input", "Output", "GainReduction" };
 
-    //======================================
-    //Levelmeter for input
-    inputMeter.setLookAndFeel(&lnf);
-    inputMeter.setMeterSource(&processor.meterSourceInput);
-    inputMeter.setSelectedChannel(0);
-    components.add(&inputMeter);
-    addAndMakeVisible(inputMeter);
+    for (int i = 0; i < 3; ++i) {
+        foleys::LevelMeter* levelMeter;
+        foleys::LevelMeter::MeterFlags flags = foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal;
+        if (i == 2)
+            flags = flags | foleys::LevelMeter::HorizontalRight;
+        levelMeters.add(levelMeter = new foleys::LevelMeter(flags));
+        levelMeter->setLookAndFeel(&lnf);
+        levelMeter->setSelectedChannel(0);
+        components.add(levelMeter);
+        addAndMakeVisible(levelMeter);
 
-    Label* inputLabel;
-    labels.add(inputLabel = new Label("Input", "Input"));
-    inputLabel->attachToComponent(components.getLast(), true);
-    addAndMakeVisible(inputLabel);
+        Label* meterLabel;
+        labels.add(meterLabel = new Label(labelStrings[i], labelStrings[i]));
+        meterLabel->attachToComponent(components.getLast(), true);
+        addAndMakeVisible(meterLabel);
+    }
 
-    // Levelmeter for output
-    outputMeter.setLookAndFeel(&lnf);
-    outputMeter.setMeterSource(&processor.meterSourceOutput);
-    outputMeter.setSelectedChannel(0);
-    components.add(&outputMeter);
-    addAndMakeVisible(outputMeter);
-
-    Label* outputLabel;
-    labels.add(outputLabel = new Label("Output", "Output"));
-    outputLabel->attachToComponent(components.getLast(), true);
-    addAndMakeVisible(outputLabel);
-
-    // Levelmeter for gain reduction
-    gainReductionMeter.setLookAndFeel(&lnf);
-    gainReductionMeter.setMeterSource(&processor.meterSourceGainReduction);
-    gainReductionMeter.setSelectedChannel(0);
-    components.add(&gainReductionMeter);
-    addAndMakeVisible(gainReductionMeter);
-
-    Label* gainLabel;
-    labels.add(gainLabel = new Label("GainReduction", "Gain reduction"));
-    gainLabel->attachToComponent(components.getLast(), true);
-    addAndMakeVisible(gainLabel);
+    levelMeters.getUnchecked(0)->setMeterSource(&processor.meterSourceInput);
+    levelMeters.getUnchecked(1)->setMeterSource(&processor.meterSourceOutput);
+    levelMeters.getUnchecked(2)->setMeterSource(&processor.meterSourceGainReduction);
 
     //======================================
 
@@ -109,7 +93,9 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 
 Level1Editor::~Level1Editor()
 {
-    inputMeter.setLookAndFeel(nullptr);
+    for (auto* m : levelMeters) {
+        m->setLookAndFeel(nullptr);
+    }
 }
 
 void Level1Editor::paint(Graphics& g)
@@ -128,7 +114,7 @@ void Level1Editor::resized()
 
         if (foleys::LevelMeter* aLevelMeter = dynamic_cast<foleys::LevelMeter*> (components[i]))
         {
-            if (i + 2 != components.size())
+            if (i + 2 != components.size()) // Leave space before last level meter
                 r.removeFromTop(levelMeterHeight);
             components[i]->setBounds(r.removeFromTop(levelMeterHeight));
         }

@@ -176,7 +176,6 @@ private:
     // Actual depth is tabBarDepth (bottom part) + tabBarDepth2 (top part)
     int tabBarDepth = 33;
     int tabBarDepth2 = 7;
-    Rectangle<int> spacer;
     
     TabsLookAndFeel tlaf;
 

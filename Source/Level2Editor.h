@@ -50,7 +50,7 @@ private:
     Visualiser visualiser;
 
     ThumbOnlySlider tos;
-    OwnedArray<Slider> controlLines;
+    OwnedArray<Slider> controlLineSliders;
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
 

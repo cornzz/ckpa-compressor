@@ -38,7 +38,7 @@ Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
                        ),
 #endif
     parameters(*this)
-    , paramThreshold(parameters, "Threshold", "dB", -60.0f, 0.0f, -24.0f)
+    , paramThreshold(parameters, "Threshold", "dB", -60.0f, 0.0f, 0.0f)
     , paramRatio(parameters, "Ratio", ":1", 1.0f, 100.0f, 1.0f)
     , paramAttack(parameters, "Attack", "ms", 0.1f, 100.0f, 2.0f, [](float value) { return value * 0.001f; })
     , paramRelease(parameters, "Release", "ms", 10.0f, 1000.0f, 300.0f, [](float value) { return value * 0.001f; })
@@ -67,13 +67,15 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     //======================================
 
     mixedDownInput.setSize(1, samplesPerBlock);
+    bufferBefore.setSize(1, samplesPerBlock);
+    bufferAfter.setSize(1, samplesPerBlock);
+    bufferGainReduction.setSize(1, samplesPerBlock);
 
     inputLevel = 0.0f;
     ylPrev = 0.0f;
 
     inverseSampleRate = 1.0f / (float) getSampleRate();
     inverseE = 1.0f / M_E;
-    visualiser.clear();
 }
 
 void Ckpa_compressorAudioProcessor::releaseResources()
@@ -89,10 +91,8 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     const int numSamples = buffer.getNumSamples();
 
     // Create copy of buffer before compression
-    AudioBuffer<float> bufferBefore;
     bufferBefore.makeCopyOf(buffer);
     
-    AudioBuffer<float> bufferGainReduction;
     if (level1active)
         bufferGainReduction.makeCopyOf(buffer);
 
@@ -109,9 +109,9 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
             float alphaR = calculateAttackOrRelease(paramRelease.getNextValue());   // Release
             float makeupGain = paramMakeupGain.getNextValue();                      // Makeup Gain
 
-            // Square input
+            // Square input to get rid of sign
             inputLevel = powf(mixedDownInput.getSample(0, sample), 2.0f);
-            // Convert gain to dB
+            // Convert gain to dB (10.0f instead of 20.0f since inputLevel was squared)
             xg = (inputLevel <= 1e-6f) ? -60.0f : 10.0f * log10f(inputLevel);
 
             // Compressor
@@ -153,6 +153,9 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
         }
     }
 
+    // Create copy of buffer after compression
+    bufferAfter.makeCopyOf(buffer);
+
     if (level1active) // Push signal to level metersources
     {
         meterSourceInput.measureBlock(bufferBefore);
@@ -160,8 +163,8 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
         meterSourceGainReduction.measureBlock(bufferGainReduction);
     }
 
-    // Push signal to visualiser buffer
-    visualiser.pushBuffer(bufferBefore, buffer);
+    // Notify visualiser parent that buffer changed
+    sendChangeMessage();
 
     //======================================
 

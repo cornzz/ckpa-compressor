@@ -64,6 +64,13 @@ void Level2Editor::changeListenerCallback(ChangeBroadcaster* source)
     visualiser.pushBuffer(p->bufferBefore, p->bufferAfter);
 }
 
+void Level2Editor::sliderValueChanged(Slider* slider)
+{
+    repaint(); // Necessary to prevent the control lines from lagging behind
+}
+
+//==============================================================================
+
 void Level2Editor::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
@@ -121,11 +128,4 @@ void Level2Editor::resized()
         .withTrimmedTop(rVis.getHeight() * 0.25)
         .expanded(0, 10);
     controlLineSliders[2]->setBounds(rVis); // Makeup Gain
-}
-
-//==============================================================================
-
-void Level2Editor::sliderValueChanged(Slider* slider)
-{
-    repaint(); // Necessary to prevent the control lines from lagging behind
 }

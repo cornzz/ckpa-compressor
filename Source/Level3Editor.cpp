@@ -26,17 +26,49 @@
 
 Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
+    compressionSlider = std::make_unique<Slider>(Slider::LinearHorizontal, Slider::NoTextBox);
+    compressionSlider->setLookAndFeel(&tos);
+    compressionSlider->setRange(1, 25, 0.1);
+    compressionSlider->setValue(25);
+    
+    compressionSlider->addListener(this);
+
+    addAndMakeVisible(*compressionSlider);
 }
 
 Level3Editor::~Level3Editor()
 {
 }
 
+void Level3Editor::sliderValueChanged(Slider* slider)
+{
+    circleDiameter = (slider->getPositionOfValue(slider->getValue()) + 10) * 2.0f;
+    repaint();
+}
+
 void Level3Editor::paint(Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+    Colour bkg = getLookAndFeel().findColour(ResizableWindow::backgroundColourId);
+    g.fillAll(bkg);
+
+    Rectangle<float> r = getLocalBounds().toFloat().reduced(editorMargin);
+    //g.setColour(bkg.darker(0.15));
+    //g.fillRect(r);
+
+    circleDiameter = (circleDiameter == 0) ? r.getHeight() : circleDiameter;
+    auto rect = Rectangle<float>(circleDiameter, circleDiameter).withCentre(r.getCentre());
+    g.setColour(findColour(Slider::thumbColourId));
+    g.drawEllipse(rect, 2.0f);
 }
 
 void Level3Editor::resized()
 {
+    Rectangle<int> r = getLocalBounds().reduced(editorMargin);
+
+    r = r.removeFromRight(r.getWidth() / 2)
+        .removeFromBottom(r.getHeight() / 2 + 10)
+        .removeFromTop(20)
+        .withTrimmedLeft(10)
+        .removeFromLeft(r.getHeight() / 2);
+    compressionSlider->setBounds(r);
 }

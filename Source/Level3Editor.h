@@ -27,11 +27,14 @@
 
 //==============================================================================
 
-class Level3Editor : public Component
+class Level3Editor : public Component,
+    Slider::Listener
 {
 public:
     Level3Editor(Ckpa_compressorAudioProcessor&);
     ~Level3Editor();
+
+    void sliderValueChanged(Slider* slider) override;
 
     void paint(Graphics&) override;
     void resized() override;
@@ -39,9 +42,14 @@ public:
 private:
     Ckpa_compressorAudioProcessor& processor;
 
+    ThumbOnlySlider tos;
+    std::unique_ptr<Slider> compressionSlider;
+
+    float circleDiameter = 0;
+
     enum {
         editorWidth = 500,
-        editorMargin = 10,
+        editorMargin = 20,
         editorPadding = 10,
     };
 };

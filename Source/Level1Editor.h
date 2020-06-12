@@ -56,18 +56,15 @@ private:
 
     OwnedArray<Slider> sliders;
     OwnedArray<ToggleButton> toggles;
-    OwnedArray<ComboBox> comboBoxes;
 
     OwnedArray<Label> labels;
     Array<Component*> components;
 
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-    typedef AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
 
     OwnedArray<SliderAttachment> sliderAttachments;
     OwnedArray<ButtonAttachment> buttonAttachments;
-    OwnedArray<ComboBoxAttachment> comboBoxAttachments;
 
     foleys::LevelMeterLookAndFeel lnf;
     OwnedArray<foleys::LevelMeter> levelMeters;

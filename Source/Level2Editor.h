@@ -37,12 +37,12 @@ public:
     ~Level2Editor();
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
+    void sliderValueChanged(Slider* slider) override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics& g) override;
     void resized() override;
 
-    void sliderValueChanged(Slider* slider) override;
 
 private:
     Ckpa_compressorAudioProcessor& processor;

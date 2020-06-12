@@ -238,3 +238,29 @@ public:
     const StringArray items;
     const int defaultChoice;
 };
+
+//==============================================================================
+
+class ThumbOnlySlider : public LookAndFeel_V4
+{
+public:
+    void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
+        float sliderPos,
+        float minSliderPos,
+        float maxSliderPos,
+        const Slider::SliderStyle style, Slider& slider) override
+    {
+        // Visualise slider bounds
+        //g.setColour(Colours::black);
+        //g.drawRect(Rectangle<int>(x, y, width, height));
+
+        auto thumbWidth = getSliderThumbRadius(slider);
+        g.setColour(slider.findColour(Slider::thumbColourId));
+        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
+        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
+        g.fillEllipse(Rectangle<float>(static_cast<float> (thumbWidth), static_cast<float> (thumbWidth))
+            .withCentre({ kx, ky }));
+    }
+
+private:
+};

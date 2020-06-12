@@ -606,8 +606,14 @@ void drawMeterBar (juce::Graphics& g,
                 g.setColour (findColour ((peakDb > -0.3f) ? foleys::LevelMeter::lmMeterMaxOverColour :
                                          ((peakDb > -5.0) ? foleys::LevelMeter::lmMeterMaxWarnColour :
                                           foleys::LevelMeter::lmMeterMaxNormalColour)));
-                g.drawVerticalLine (juce::roundToInt (floored.getRight() - juce::jmax (peakDb * floored.getWidth() / infinity, 0.0f)),
-                                    floored.getY(), floored.getBottom());
+
+                int xPos;
+                if (meterType & foleys::LevelMeter::HorizontalRight)
+                    xPos = juce::roundToInt(floored.getX() + juce::jmax(peakDb * floored.getWidth() / infinity, 0.0f));
+                else
+                    xPos = juce::roundToInt(floored.getRight() - juce::jmax(peakDb * floored.getWidth() / infinity, 0.0f));
+
+                g.drawVerticalLine (xPos, floored.getY(), floored.getBottom());
             }
         }
         else

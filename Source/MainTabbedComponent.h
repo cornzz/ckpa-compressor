@@ -108,14 +108,6 @@ class TabsLookAndFeel : public LookAndFeel_V4
     }
 };
 
-class CustomTabBarButton : public TabBarButton
-{
-public:
-    CustomTabBarButton(const String& name, TabbedButtonBar& bar) : TabBarButton(name, bar) 
-    {
-    }
-};
-
 struct MainTabbedComponent : public TabbedComponent
 {
 public:
@@ -162,12 +154,6 @@ public:
     void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
     {
         processor.level1active = (newCurrentTabName == "Level 1") ? true : false;
-    }
-
-protected:
-    CustomTabBarButton* createTabButton(const String& tabName, int /*tabIndex*/) override
-    {
-        return new CustomTabBarButton(tabName, *tabs);
     }
 
 private:

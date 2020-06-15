@@ -21,6 +21,7 @@
 */
 
 #include "Level3Editor.h"
+#include <math.h>
 
 //==============================================================================
 
@@ -32,8 +33,16 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     compressionSlider->setValue(25);
     
     compressionSlider->addListener(this);
-
     addAndMakeVisible(*compressionSlider);
+
+    rand = std::make_unique<Random>();
+    anim = std::make_unique<ComponentAnimator>();
+    Colour c = findColour(Slider::thumbColourId);
+    for (int i = 0; i < 40; ++i) {
+        Atom* a;
+        atoms.add(a = new Atom(rand.get(), anim.get(), c));
+        addAndMakeVisible(a);
+    }
 }
 
 Level3Editor::~Level3Editor()
@@ -42,8 +51,18 @@ Level3Editor::~Level3Editor()
 
 void Level3Editor::sliderValueChanged(Slider* slider)
 {
-    circleDiameter = (slider->getPositionOfValue(slider->getValue()) + 10) * 2.0f;
+    circleDiameter = (slider->getPositionOfValue(slider->getValue()) + 30) * 2.0f;
     repaint();
+
+    int atomSize = circleDiameter * 0.1;
+    for (int j = 0; j < 4; ++j) {
+        for (int i = 0; i < 10; ++i) {
+            atoms.getUnchecked(i + (j * 10))->setBounds(Rectangle<int>(i * atomSize, j * atomSize, atomSize, atomSize));
+        }
+    }
+    anim->cancelAllAnimations(false);
+
+    //processor.paramThreshold.updateValue(-30);
 }
 
 void Level3Editor::paint(Graphics& g)
@@ -68,7 +87,56 @@ void Level3Editor::resized()
     r = r.removeFromRight(r.getWidth() / 2)
         .removeFromBottom(r.getHeight() / 2 + 10)
         .removeFromTop(20)
-        .withTrimmedLeft(10)
-        .removeFromLeft(r.getHeight() / 2);
+        .withTrimmedLeft(30)
+        .removeFromLeft(r.getHeight() / 2 - 20);
     compressionSlider->setBounds(r);
 }
+
+//==============================================================================
+
+Atom::Atom(Random* r, ComponentAnimator* a, Colour c) : rand(r),
+    anim(a)
+{
+    ae = std::make_unique<AtomEllipse>(c);
+    addAndMakeVisible(*ae);
+    
+    anim->addChangeListener(this);
+}
+
+Atom::~Atom()
+{
+}
+
+void Atom::paint(Graphics& g)
+{
+    g.setColour(Colours::black);
+    g.drawRect(getLocalBounds());
+}
+
+void Atom::resized()
+{
+    if (!init) {
+        ae->setBounds(getLocalBounds().withSizeKeepingCentre(6, 6));
+        anim->sendChangeMessage();
+        init = true;
+    }
+}
+
+void Atom::changeListenerCallback(ChangeBroadcaster* source)
+{
+    ComponentAnimator* anim = dynamic_cast<ComponentAnimator*>(source);
+
+    if (!anim->isAnimating(ae.get())) {
+        int newX, newY, dist;
+        while (true) {
+            newX = rand->nextInt(getWidth() - ae->getWidth());
+            newY = rand->nextInt(getHeight() - ae->getHeight());
+            dist = hypot(newX - ae->getX(), newY - ae->getY());
+            if (dist >= (getWidth() - ae->getWidth()) / 2 || ae->getWidth() >= getWidth() / 2)
+                break;
+        }
+        Rectangle<int> newBounds = ae->getBounds().withPosition(newX, newY);
+        anim->animateComponent(ae.get(), newBounds, 1.0f, dist * 30, false, 1, 1);
+    }
+}
+

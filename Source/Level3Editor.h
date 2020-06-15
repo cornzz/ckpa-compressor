@@ -27,6 +27,44 @@
 
 //==============================================================================
 
+class Atom : public Component,
+    public ChangeListener
+{
+public:
+    Atom(Random*, ComponentAnimator*, Colour);
+    ~Atom();
+
+    void paint(Graphics&) override;
+    void resized() override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+
+    struct AtomEllipse : public Component
+    {
+        AtomEllipse(Colour c) : c(c)
+        {
+        }
+
+        void paint(Graphics& g) override {
+            Rectangle<float> r = getLocalBounds().toFloat();
+            g.setColour(c);
+            g.fillEllipse(r);
+        }
+
+        Colour c;
+    };
+
+private:
+    bool init = false;
+
+    std::unique_ptr<AtomEllipse> ae;
+
+    Random* rand;
+    ComponentAnimator* anim;
+
+    int width, height;
+};
+
 class Level3Editor : public Component,
     Slider::Listener
 {
@@ -34,7 +72,7 @@ public:
     Level3Editor(Ckpa_compressorAudioProcessor&);
     ~Level3Editor();
 
-    void sliderValueChanged(Slider* slider) override;
+    void sliderValueChanged(Slider*) override;
 
     void paint(Graphics&) override;
     void resized() override;
@@ -46,6 +84,10 @@ private:
     std::unique_ptr<Slider> compressionSlider;
 
     float circleDiameter = 0;
+
+    std::unique_ptr<Random> rand;
+    std::unique_ptr<ComponentAnimator> anim;
+    OwnedArray<Atom> atoms;
 
     enum {
         editorWidth = 500,

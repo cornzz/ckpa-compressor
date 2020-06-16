@@ -57,7 +57,7 @@ void Level3Editor::sliderValueChanged(Slider* slider)
     int atomSize = circleDiameter * 0.1;
     for (int j = 0; j < 4; ++j) {
         for (int i = 0; i < 10; ++i) {
-            atoms.getUnchecked(i + (j * 10))->setBounds(Rectangle<int>(i * atomSize, j * atomSize, atomSize, atomSize));
+            atoms.getUnchecked(i + (j * 10))->resize(Rectangle<int>(i * atomSize, j * atomSize, atomSize, atomSize));
         }
     }
     anim->cancelAllAnimations(false);
@@ -115,18 +115,33 @@ void Atom::paint(Graphics& g)
 
 void Atom::resized()
 {
-    if (!init) {
+    if (!init) { // Set bounds of AtomEllipse only on init
         ae->setBounds(getLocalBounds().withSizeKeepingCentre(6, 6));
-        anim->sendChangeMessage();
+        anim->sendChangeMessage(); // Start animation loop
         init = true;
     }
+}
+
+void Atom::resize(Rectangle<int> newBounds)
+{
+    if (!init) {
+        setBounds(newBounds);
+        return;
+    }
+
+    // Set position of ae in new bounds relative to position in old bounds
+    Rectangle<int> oldBounds = getBounds();
+    float relativeX = ae->getX() / (float) oldBounds.getWidth();
+    float relativeY = ae->getY() / (float) oldBounds.getHeight();
+    ae->setTopLeftPosition(newBounds.getWidth() * relativeX, newBounds.getHeight() * relativeY);
+    setBounds(newBounds);
 }
 
 void Atom::changeListenerCallback(ChangeBroadcaster* source)
 {
     ComponentAnimator* anim = dynamic_cast<ComponentAnimator*>(source);
 
-    if (!anim->isAnimating(ae.get())) {
+    if (!anim->isAnimating(ae.get())) { // AtomEllipse reached destination, find new dest. coordinates
         int newX, newY, dist;
         while (true) {
             newX = rand->nextInt(getWidth() - ae->getWidth());

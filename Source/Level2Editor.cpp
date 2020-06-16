@@ -48,6 +48,18 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         SliderAttachment* controlLineSliderAttachment;
         sliderAttachments.add(controlLineSliderAttachment = new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *cls));
         cls->addListener(this);
+
+        std::function<float(float, float, float)> convertFrom0To1Func, convertTo0To1Func;
+        if (i == 0) { // Set conversion function for threshold line
+            convertFrom0To1Func = [](float start, float end, float x) { return Decibels::gainToDecibels(x, start); };
+            convertTo0To1Func = [](float start, float end, float x) { return Decibels::decibelsToGain(x, start); };
+        }
+        else if (i == 1) { // Set conversion function for ratio line
+            convertFrom0To1Func = [](float start, float end, float x) { return (x <= 0) ? start : (x >= 1) ? end : 1 / (1 - x); };
+            convertTo0To1Func = [](float start, float end, float x) { return (x >= end) ? 1 : (x <= start) ? 0 : 1 - 1 / x; };
+        }
+        NormalisableRange<double> range(cls->getMinimum(), cls->getMaximum(), convertFrom0To1Func, convertTo0To1Func);
+        cls->setNormalisableRange(range);
         
         addAndMakeVisible(cls);
     }

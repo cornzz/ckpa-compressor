@@ -95,14 +95,9 @@ protected:
         paramID = paramName.removeCharacters(" ").toLowerCase();
         parametersManager.parameterTypes.add("Slider");
 
-        std::function<float(float, float, float)> convertFrom0To1Func = [](float start, float end, float x) { return (x <= 0.01) ? 1 :
-                                                                                                               (x >= 1)    ? 100 : 1 / (1 - x); };
-        std::function<float(float, float, float)> convertTo0To1Func = [](float start, float end, float x) { return (x >= 100) ? 1 :
-                                                                                                             (x <= 1) ? 0 : 1 - 1 / x; };
         NormalisableRange<float> range(minValue, maxValue);
         if (logarithmic)
-            range = NormalisableRange<float>(minValue, maxValue, convertFrom0To1Func, convertTo0To1Func);
-            /*range.setSkewForCentre(sqrt(minValue * maxValue));*/
+            range.setSkewForCentre(sqrt(minValue * maxValue));
 
         parametersManager.valueTreeState.createAndAddParameter(std::make_unique<Parameter>
             (paramID, paramName, labelText, range, defaultValue,

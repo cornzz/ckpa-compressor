@@ -63,7 +63,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::backgroundColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::thumbColourId));
-    String labelStrings[] = { "Input", "Output", "GainReduction" };
+    String labelStrings[] = { "Input", "Output", "Gain Reduction" };
 
     for (int i = 0; i < 3; ++i) {
         foleys::LevelMeter* levelMeter;

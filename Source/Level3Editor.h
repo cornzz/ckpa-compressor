@@ -78,6 +78,8 @@ public:
     void paint(Graphics&) override;
     void resized() override;
 
+    void resizeAtoms();
+
 private:
     Ckpa_compressorAudioProcessor& processor;
 

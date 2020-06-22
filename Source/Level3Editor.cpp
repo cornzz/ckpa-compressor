@@ -49,7 +49,7 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 
     sliders.add(compressionSlider = new Slider(Slider::LinearHorizontal, Slider::NoTextBox));
     compressionSlider->setLookAndFeel(&tos);
-    compressionSlider->setPopupDisplayEnabled(true, false, this);
+    //compressionSlider->setPopupDisplayEnabled(true, false, this);
     
     compressionSlider->addListener(this);
     sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, "compression", *compressionSlider));

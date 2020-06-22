@@ -30,7 +30,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     processor(p),
     tabs(p, new Level1Editor(p), new Level2Editor(p), new Level3Editor(p))
 {
-    setSize(editorWidth, 382);
+    setSize(editorWidth, 383);
     addAndMakeVisible(tabs);
 
     //======================================

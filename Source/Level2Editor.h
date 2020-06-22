@@ -50,7 +50,7 @@ private:
     enum {
         editorWidth = 500,
         editorMargin = 10,
-        editorPadding = 10,
+        editorPadding = 10
     };
 
     Visualiser visualiser;

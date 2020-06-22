@@ -30,12 +30,12 @@ class TabsLookAndFeel : public LookAndFeel_V4
 {
     int getTabButtonOverlap(int tabDepth)
     {
-        return -7; // Margin between buttons
+        return -8; // Margin between buttons
     }
 
     int getTabButtonSpaceAroundImage()
     {
-        return 7;
+        return 8;
     }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth)
@@ -160,8 +160,10 @@ private:
     Ckpa_compressorAudioProcessor& processor;
 
     // Actual depth is tabBarDepth (bottom part) + tabBarDepth2 (top part)
-    int tabBarDepth = 33;
-    int tabBarDepth2 = 7;
+    enum {
+        tabBarDepth = 33,
+        tabBarDepth2 = 8
+    };
     
     TabsLookAndFeel tlaf;
 

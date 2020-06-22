@@ -49,7 +49,7 @@ private:
         sliderHeight = 25,
         buttonHeight = 25,
         levelMeterHeight = 20,
-        labelWidth = 100,
+        labelWidth = 100
     };
 
     //======================================

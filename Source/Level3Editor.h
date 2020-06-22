@@ -90,7 +90,7 @@ private:
     enum {
         editorWidth = 500,
         editorMargin = 20,
-        editorPadding = 10,
+        editorPadding = 10
     };
 
     OwnedArray<Slider> sliders;

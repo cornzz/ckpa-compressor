@@ -107,6 +107,7 @@ public:
     PluginParameterLinSlider paramRelease;
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
+    PluginParameterLinSlider paramCompression;
 
     foleys::LevelMeterSource meterSourceInput;
     foleys::LevelMeterSource meterSourceOutput;

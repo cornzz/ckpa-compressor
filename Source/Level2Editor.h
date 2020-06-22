@@ -47,6 +47,12 @@ public:
 private:
     Ckpa_compressorAudioProcessor& processor;
 
+    enum {
+        editorWidth = 500,
+        editorMargin = 10,
+        editorPadding = 10,
+    };
+
     Visualiser visualiser;
 
     ThumbOnlySlider tos;
@@ -54,9 +60,7 @@ private:
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
 
-    enum {
-        editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
-    };
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Level2Editor)
 };

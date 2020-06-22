@@ -200,42 +200,6 @@ public:
 
 //==============================================================================
 
-class PluginParameterComboBox : public PluginParameter
-{
-public:
-    PluginParameterComboBox(PluginParametersManager& parametersManager,
-        const String& paramName,
-        const StringArray items,
-        const int defaultChoice = 0,
-        const std::function<float(const float)> callback = nullptr)
-        : PluginParameter(parametersManager, callback)
-        , paramName(paramName)
-        , items(items)
-        , defaultChoice(defaultChoice)
-    {
-        paramID = paramName.removeCharacters(" ").toLowerCase();
-        parametersManager.parameterTypes.add("ComboBox");
-
-        parametersManager.comboBoxItemLists.add(items);
-        NormalisableRange<float> range(0.0f, (float)items.size() - 1.0f, 1.0f);
-
-        parametersManager.valueTreeState.createAndAddParameter(std::make_unique<Parameter>
-            (paramID, paramName, "", range, (float)defaultChoice,
-                [items](float value) { return items[(int)value]; },
-                [items](const String& text) { return items.indexOf(text); })
-        );
-
-        parametersManager.valueTreeState.addParameterListener(paramID, this);
-        updateValue((float)defaultChoice);
-    }
-
-    const String& paramName;
-    const StringArray items;
-    const int defaultChoice;
-};
-
-//==============================================================================
-
 class ThumbOnlySlider : public LookAndFeel_V4
 {
 public:

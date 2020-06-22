@@ -64,6 +64,10 @@ private:
     ComponentAnimator* anim;
 
     int width, height;
+
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Atom)
 };
 
 class Level3Editor : public Component,
@@ -83,18 +87,26 @@ public:
 private:
     Ckpa_compressorAudioProcessor& processor;
 
-    ThumbOnlySlider tos;
-    std::unique_ptr<Slider> compressionSlider;
-
-    float circleDiameter = 0;
-
-    std::unique_ptr<Random> rand;
-    std::unique_ptr<ComponentAnimator> anim;
-    OwnedArray<Atom> atoms;
-
     enum {
         editorWidth = 500,
         editorMargin = 20,
         editorPadding = 10,
     };
+
+    OwnedArray<Slider> sliders;
+    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+    OwnedArray<SliderAttachment> sliderAttachments;
+
+    ThumbOnlySlider tos;
+    Slider* compressionSlider;
+
+    std::unique_ptr<Random> rand;
+    std::unique_ptr<ComponentAnimator> anim;
+    OwnedArray<Atom> atoms;
+
+    float circleDiameter = 0;
+
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Level3Editor)
 };

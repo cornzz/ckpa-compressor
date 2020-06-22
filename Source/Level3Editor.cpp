@@ -27,14 +27,6 @@
 
 Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
-    compressionSlider = std::make_unique<Slider>(Slider::LinearHorizontal, Slider::NoTextBox);
-    compressionSlider->setLookAndFeel(&tos);
-    compressionSlider->setRange(1, 25, 0.1);
-    compressionSlider->setValue(25);
-    
-    compressionSlider->addListener(this);
-    addAndMakeVisible(*compressionSlider);
-
     rand = std::make_unique<Random>();
     anim = std::make_unique<ComponentAnimator>();
     Colour c = findColour(Slider::thumbColourId);
@@ -43,20 +35,54 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
         atoms.add(a = new Atom(rand.get(), anim.get(), c));
         addAndMakeVisible(a, 0);
     }
+
+    const Array<AudioProcessorParameter*> parameters = processor.getParameters();
+    int ind[] = { 0, 1, 4 };
+    for (int i : ind) {
+        if (const AudioProcessorParameterWithID* parameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i])) {
+            Slider* aSlider;
+            sliders.add(aSlider = new Slider());
+
+            sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, parameter->paramID, *aSlider));
+        }
+    }
+
+    sliders.add(compressionSlider = new Slider(Slider::LinearHorizontal, Slider::NoTextBox));
+    compressionSlider->setLookAndFeel(&tos);
+    compressionSlider->setPopupDisplayEnabled(true, false, this);
+    
+    compressionSlider->addListener(this);
+    sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, "compression", *compressionSlider));
+    addAndMakeVisible(*compressionSlider);
 }
 
 Level3Editor::~Level3Editor()
 {
+    compressionSlider->setLookAndFeel(nullptr);
 }
 
 void Level3Editor::sliderValueChanged(Slider* slider)
 {
-    circleDiameter = (slider->getPositionOfValue(slider->getValue()) + 30) * 2.0f;
-    repaint();
+    if (slider == compressionSlider) {
+        float sliderValue = slider->getValue();
+        circleDiameter = (slider->getPositionOfValue(sliderValue) + 30) * 2.0f;
+        repaint();
+        
+        resizeAtoms();
+        
+        sliders.getFirst()->setValue(sliderValue * 1.5 - 30);
+        sliders.getUnchecked(1)->setValue(pow(sliderValue - 20, 2) / 25 + 1.0);
+        sliders.getUnchecked(2)->setValue(-0.2 * sliderValue + 4);
+    }
+    else if (slider == sliders.getUnchecked(0)) { // Threshold
 
-    resizeAtoms();
+    }
+    else if (slider == sliders.getUnchecked(1)) { // Ratio
 
-    //processor.paramThreshold.updateValue(-30);
+    }
+    else if (slider == sliders.getUnchecked(2)) { // Makeup gain
+
+    }
 }
 
 void Level3Editor::paint(Graphics& g)
@@ -85,6 +111,7 @@ void Level3Editor::resized()
         .withTrimmedLeft(30)
         .removeFromLeft(r.getHeight() / 2 - 20);
     compressionSlider->setBounds(r);
+    sliderValueChanged(compressionSlider);
 }
 
 //==============================================================================
@@ -145,7 +172,7 @@ void Atom::changeListenerCallback(ChangeBroadcaster* source)
     if (!anim->isAnimating(ae.get())) { // AtomEllipse reached destination, find new dest. coordinates
         int newX, newY, dist;
         while (true) {
-            newX = rand->nextInt(getWidth() - ae->getWidth());
+            newX = rand->nextInt(getWidth() - ae->getWidth());  // TODO: this is bad
             newY = rand->nextInt(getHeight() - ae->getHeight());
             dist = hypot(newX - ae->getX(), newY - ae->getY());
             if (dist >= (getWidth() - ae->getWidth()) / 2 || ae->getWidth() >= getWidth() / 2)

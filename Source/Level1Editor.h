@@ -68,4 +68,8 @@ private:
 
     foleys::LevelMeterLookAndFeel lnf;
     OwnedArray<foleys::LevelMeter> levelMeters;
+
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Level1Editor)
 };

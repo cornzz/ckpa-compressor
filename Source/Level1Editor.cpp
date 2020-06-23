@@ -27,10 +27,9 @@
 Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
-    int comboBoxCounter = 0;
 
     int editorHeight = 2 * editorMargin;
-    for (int i = 0; i < parameters.size(); ++i) {
+    for (int i = 0; i < parameters.size() - 1; ++i) {
         if (const AudioProcessorParameterWithID* parameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i])) {
 
             if (processor.parameters.parameterTypes[i] == "Slider") {
@@ -63,7 +62,7 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, getLookAndFeel().findColour(Slider::backgroundColourId));
     lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentWhite);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, getLookAndFeel().findColour(Slider::thumbColourId));
-    String labelStrings[] = { "Input", "Output", "GainReduction" };
+    String labelStrings[] = { "Input", "Output", "Gain Reduction" };
 
     for (int i = 0; i < 3; ++i) {
         foleys::LevelMeter* levelMeter;

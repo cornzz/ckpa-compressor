@@ -95,14 +95,9 @@ protected:
         paramID = paramName.removeCharacters(" ").toLowerCase();
         parametersManager.parameterTypes.add("Slider");
 
-        std::function<float(float, float, float)> convertFrom0To1Func = [](float start, float end, float x) { return (x <= 0.01) ? 1 :
-                                                                                                               (x >= 1)    ? 100 : 1 / (1 - x); };
-        std::function<float(float, float, float)> convertTo0To1Func = [](float start, float end, float x) { return (x >= 100) ? 1 :
-                                                                                                             (x <= 1) ? 0 : 1 - 1 / x; };
         NormalisableRange<float> range(minValue, maxValue);
         if (logarithmic)
-            range = NormalisableRange<float>(minValue, maxValue, convertFrom0To1Func, convertTo0To1Func);
-            /*range.setSkewForCentre(sqrt(minValue * maxValue));*/
+            range.setSkewForCentre(sqrt(minValue * maxValue));
 
         parametersManager.valueTreeState.createAndAddParameter(std::make_unique<Parameter>
             (paramID, paramName, labelText, range, defaultValue,
@@ -205,36 +200,26 @@ public:
 
 //==============================================================================
 
-class PluginParameterComboBox : public PluginParameter
+class ThumbOnlySlider : public LookAndFeel_V4
 {
 public:
-    PluginParameterComboBox(PluginParametersManager& parametersManager,
-        const String& paramName,
-        const StringArray items,
-        const int defaultChoice = 0,
-        const std::function<float(const float)> callback = nullptr)
-        : PluginParameter(parametersManager, callback)
-        , paramName(paramName)
-        , items(items)
-        , defaultChoice(defaultChoice)
+    void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
+        float sliderPos,
+        float minSliderPos,
+        float maxSliderPos,
+        const Slider::SliderStyle style, Slider& slider) override
     {
-        paramID = paramName.removeCharacters(" ").toLowerCase();
-        parametersManager.parameterTypes.add("ComboBox");
+        // Visualise slider bounds
+        //g.setColour(Colours::black);
+        //g.drawRect(Rectangle<int>(x, y, width, height));
 
-        parametersManager.comboBoxItemLists.add(items);
-        NormalisableRange<float> range(0.0f, (float)items.size() - 1.0f, 1.0f);
-
-        parametersManager.valueTreeState.createAndAddParameter(std::make_unique<Parameter>
-            (paramID, paramName, "", range, (float)defaultChoice,
-                [items](float value) { return items[(int)value]; },
-                [items](const String& text) { return items.indexOf(text); })
-        );
-
-        parametersManager.valueTreeState.addParameterListener(paramID, this);
-        updateValue((float)defaultChoice);
+        auto thumbWidth = getSliderThumbRadius(slider);
+        g.setColour(slider.findColour(Slider::thumbColourId));
+        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
+        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
+        g.fillEllipse(Rectangle<float>(static_cast<float> (thumbWidth), static_cast<float> (thumbWidth))
+            .withCentre({ kx, ky }));
     }
 
-    const String& paramName;
-    const StringArray items;
-    const int defaultChoice;
+private:
 };

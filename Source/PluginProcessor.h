@@ -102,11 +102,12 @@ public:
     PluginParametersManager parameters;
 
     PluginParameterLinSlider paramThreshold;
-    PluginParameterLogSlider paramRatio;
+    PluginParameterLinSlider paramRatio;
     PluginParameterLinSlider paramAttack;
     PluginParameterLinSlider paramRelease;
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
+    PluginParameterLinSlider paramCompression;
 
     foleys::LevelMeterSource meterSourceInput;
     foleys::LevelMeterSource meterSourceOutput;

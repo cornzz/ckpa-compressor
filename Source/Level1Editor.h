@@ -49,26 +49,27 @@ private:
         sliderHeight = 25,
         buttonHeight = 25,
         levelMeterHeight = 20,
-        labelWidth = 100,
+        labelWidth = 100
     };
 
     //======================================
 
     OwnedArray<Slider> sliders;
     OwnedArray<ToggleButton> toggles;
-    OwnedArray<ComboBox> comboBoxes;
 
     OwnedArray<Label> labels;
     Array<Component*> components;
 
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-    typedef AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
 
     OwnedArray<SliderAttachment> sliderAttachments;
     OwnedArray<ButtonAttachment> buttonAttachments;
-    OwnedArray<ComboBoxAttachment> comboBoxAttachments;
 
     foleys::LevelMeterLookAndFeel lnf;
     OwnedArray<foleys::LevelMeter> levelMeters;
+
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Level1Editor)
 };

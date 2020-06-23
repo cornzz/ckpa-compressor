@@ -27,21 +27,86 @@
 
 //==============================================================================
 
-class Level3Editor : public Component
+class Atom : public Component,
+    public ChangeListener
+{
+public:
+    Atom(Random*, ComponentAnimator*, Colour);
+    ~Atom();
+
+    void paint(Graphics&) override;
+    void resized() override;
+    void resize(Rectangle<float>);
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+
+    struct AtomEllipse : public Component
+    {
+        AtomEllipse(Colour c) : c(c)
+        {
+        }
+
+        void paint(Graphics& g) override {
+            Rectangle<float> r = getLocalBounds().toFloat();
+            g.setColour(c);
+            g.fillEllipse(r);
+        }
+
+        Colour c;
+    };
+
+private:
+    bool init = false;
+
+    std::unique_ptr<AtomEllipse> ae;
+
+    Random* rand;
+    ComponentAnimator* anim;
+
+    int width, height;
+
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Atom)
+};
+
+class Level3Editor : public Component,
+    Slider::Listener
 {
 public:
     Level3Editor(Ckpa_compressorAudioProcessor&);
     ~Level3Editor();
 
+    void sliderValueChanged(Slider*) override;
+
     void paint(Graphics&) override;
     void resized() override;
+
+    void resizeAtoms();
 
 private:
     Ckpa_compressorAudioProcessor& processor;
 
     enum {
         editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
+        editorMargin = 20,
+        editorPadding = 10
     };
+
+    OwnedArray<Slider> sliders;
+    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+    OwnedArray<SliderAttachment> sliderAttachments;
+
+    ThumbOnlySlider tos;
+    Slider* compressionSlider;
+
+    std::unique_ptr<Random> rand;
+    std::unique_ptr<ComponentAnimator> anim;
+    OwnedArray<Atom> atoms;
+
+    float circleDiameter = 0;
+
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Level3Editor)
 };

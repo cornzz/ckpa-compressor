@@ -37,15 +37,21 @@ public:
     ~Level2Editor();
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
+    void sliderValueChanged(Slider* slider) override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics& g) override;
     void resized() override;
 
-    void sliderValueChanged(Slider* slider) override;
 
 private:
     Ckpa_compressorAudioProcessor& processor;
+
+    enum {
+        editorWidth = 500,
+        editorMargin = 10,
+        editorPadding = 10
+    };
 
     Visualiser visualiser;
 
@@ -54,9 +60,7 @@ private:
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
 
-    enum {
-        editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
-    };
+    //==============================================================================
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Level2Editor)
 };

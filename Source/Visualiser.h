@@ -107,32 +107,3 @@ private:
     int numSamplesTop, inputSamplesPerBlockTop;
     Colour waveformColour2;
 };
-
-//==============================================================================
-
-class ThumbOnlySlider : public LookAndFeel_V4
-{
-public:
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
-        float sliderPos,
-        float minSliderPos,
-        float maxSliderPos,
-        const Slider::SliderStyle style, Slider& slider) override
-    {
-        // Visualise slider bounds
-        //Path p;
-        //p.startNewSubPath(x, y);
-        //p.lineTo(x + width, y);
-        //p.lineTo(x + width, y + height);
-        //p.lineTo(x, y + height);
-        //p.closeSubPath();
-        //g.setColour(Colours::black);
-        //g.strokePath(p, PathStrokeType(1.0f));
-
-        auto thumbWidth = getSliderThumbRadius(slider);
-        g.setColour(slider.findColour(Slider::thumbColourId));
-        g.fillEllipse(Rectangle<float>(static_cast<float> (thumbWidth), static_cast<float> (thumbWidth)).withCentre(Point<float>(x + width * 0.5f, sliderPos)));
-    }
-
-private:
-};

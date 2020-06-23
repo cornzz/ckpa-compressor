@@ -19,10 +19,6 @@
 
   ==============================================================================
 */
-// stringstreams
-#include <iostream>
-#include <string>
-#include <sstream>
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "PluginParameters.h"
@@ -31,15 +27,15 @@
 
 Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", AudioChannelSet::stereo(), true)
-                     #endif
-                       ),
-#endif
+    : AudioProcessor(BusesProperties()
+                    #if ! JucePlugin_IsMidiEffect
+                    #if ! JucePlugin_IsSynth
+                            .withInput("Input", AudioChannelSet::stereo(), true)
+                    #endif
+                            .withOutput("Output", AudioChannelSet::stereo(), true)
+                    #endif
+                        ),
+                    #endif
     parameters(*this)
     , paramThreshold(parameters, "Threshold", "dB", -60.0f, 0.0f, 0.0f)
     , paramRatio(parameters, "Ratio", ":1", 1.0f, 100.0f, 1.0f)
@@ -47,6 +43,7 @@ Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
     , paramRelease(parameters, "Release", "ms", 10.0f, 1000.0f, 300.0f, [](float value) { return value * 0.001f; })
     , paramMakeupGain(parameters, "Makeup Gain", "dB", -12.0f, 12.0f, 0.0f)
     , paramBypass(parameters, "")
+    , paramCompression(parameters, "Compression", "ck", 0.0f, 20.0f, 20.0f)
 {
     parameters.valueTreeState.state = ValueTree(Identifier(getName().removeCharacters("- ")));
 }
@@ -66,6 +63,7 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     paramRelease.reset(sampleRate, smoothTime);
     paramMakeupGain.reset(sampleRate, smoothTime);
     paramBypass.reset(sampleRate, smoothTime);
+    paramCompression.reset(sampleRate, smoothTime);
 
     //======================================
 
@@ -73,6 +71,10 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     bufferBefore.setSize(1, samplesPerBlock);
     bufferAfter.setSize(1, samplesPerBlock);
     bufferGainReduction.setSize(1, samplesPerBlock);
+
+    meterSourceInput.resize(1, 1024);
+    meterSourceOutput.resize(1, 1024);
+    meterSourceGainReduction.resize(1, 1024);
 
     inputLevel = 0.0f;
     ylPrev = 0.0f;
@@ -96,10 +98,11 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     // Create copy of buffer before compression
     bufferBefore.makeCopyOf(buffer);
     
-    if (level1active)
-        bufferGainReduction.makeCopyOf(buffer);
     // Don't compress if bypass activated
     if (!(bool) paramBypass.getTargetValue()) {
+        if (level1active)
+            bufferGainReduction.makeCopyOf(buffer);
+
         mixedDownInput.clear();
         for (int channel = 0; channel < numInputChannels; ++channel)
             mixedDownInput.addFrom(0, 0, buffer, channel, 0, numSamples, 1.0f / numInputChannels);

@@ -27,6 +27,8 @@
 
 Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
+    ScopedValueSetter<bool> svs(init, false);
+
     rand = std::make_unique<Random>();
     anim = std::make_unique<ComponentAnimator>();
     Colour c = findColour(Slider::thumbColourId);
@@ -43,6 +45,7 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             Slider* aSlider;
             sliders.add(aSlider = new Slider());
 
+            aSlider->addListener(this);
             sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, parameter->paramID, *aSlider));
         }
     }
@@ -63,26 +66,41 @@ Level3Editor::~Level3Editor()
 
 void Level3Editor::sliderValueChanged(Slider* slider)
 {
-    if (slider == compressionSlider) {
-        float sliderValue = slider->getValue();
-        circleDiameter = (slider->getPositionOfValue(sliderValue) + 30) * 2.0f;
-        repaint();
-        
-        resizeAtoms();
-        
-        sliders.getFirst()->setValue(sliderValue * 1.5 - 30);
-        sliders.getUnchecked(1)->setValue(pow(sliderValue - 20, 2) / 25 + 1.0);
-        sliders.getUnchecked(2)->setValue(-0.2 * sliderValue + 4);
-    }
-    else if (slider == sliders.getUnchecked(0)) { // Threshold
+    if (!init)
+        return;
 
-    }
-    else if (slider == sliders.getUnchecked(1)) { // Ratio
+    double compressionValue;
 
-    }
-    else if (slider == sliders.getUnchecked(2)) { // Makeup gain
+    if (slider == compressionSlider) { // Compression circle changed
+        DBG("Slider Changed: Compression");
+        compressionValue = slider->getValue();
 
+        sliders.getFirst()->setValue(compressionValue * 1.5 - 30);                   // Threshold
+        sliders.getUnchecked(1)->setValue(pow(compressionValue - 20, 2) / 25 + 1.0); // Ratio
+        sliders.getUnchecked(2)->setValue(-0.2 * compressionValue + 4);              // Makeup gain
     }
+    else { // Threshold / ratio / makeup gain changed
+        if (slider == sliders.getFirst())
+            DBG("Slider Changed: Threshold");
+        else if (slider == sliders.getUnchecked(1))
+            DBG("Slider Changed: Ratio");
+        else if (slider == sliders.getUnchecked(2))
+            DBG("Slider Changed: Makeup gain");
+        double tempThresh = sliders.getFirst()->getValue();
+        double tempRatio = sliders.getUnchecked(1)->getValue();
+        double tempMakeup = sliders.getUnchecked(2)->getValue();
+
+        tempThresh = jlimit(0.0, 20.0, (tempThresh + 30) / 1.5);
+        tempRatio = jlimit(0.0, 20.0, 20 - sqrt((tempRatio - 1) * 25));
+        tempMakeup = jlimit(0.0, 20.0, (tempMakeup - 4) / -0.2);
+        compressionValue = (tempThresh + tempRatio + tempMakeup) / 3;
+
+        sliders.getLast()->setValue(compressionValue, dontSendNotification);
+    }
+
+    circleDiameter = (compressionSlider->getPositionOfValue(compressionValue) + 30) * 2.0f;
+    repaint();
+    resizeAtoms();
 }
 
 void Level3Editor::paint(Graphics& g)

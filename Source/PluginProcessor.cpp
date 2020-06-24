@@ -67,10 +67,12 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
 
     //======================================
 
+    int numInputChannels = getTotalNumInputChannels();
+
     mixedDownInput.setSize(1, samplesPerBlock);
-    bufferBefore.setSize(1, samplesPerBlock);
-    bufferAfter.setSize(1, samplesPerBlock);
-    bufferGainReduction.setSize(1, samplesPerBlock);
+    bufferBefore.setSize(numInputChannels, samplesPerBlock);
+    bufferAfter.setSize(numInputChannels, samplesPerBlock);
+    bufferGainReduction.setSize(numInputChannels, samplesPerBlock);
 
     meterSourceInput.resize(1, 1024);
     meterSourceOutput.resize(1, 1024);

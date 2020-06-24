@@ -92,6 +92,8 @@ private:
         editorMargin = 20,
         editorPadding = 10
     };
+    
+    bool init = true;
 
     OwnedArray<Slider> sliders;
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;

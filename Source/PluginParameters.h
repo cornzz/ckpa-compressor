@@ -213,7 +213,7 @@ public:
         //g.setColour(Colours::black);
         //g.drawRect(Rectangle<int>(x, y, width, height));
 
-        auto thumbWidth = getSliderThumbRadius(slider);
+        auto thumbWidth = getSliderThumbRadius(slider) * 1.45f;
         g.setColour(slider.findColour(Slider::thumbColourId));
         auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
         auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;

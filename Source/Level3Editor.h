@@ -36,7 +36,7 @@ public:
 
     void paint(Graphics&) override;
     void resized() override;
-    void resize(Rectangle<float>);
+    void resize(Rectangle<int>);
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
 

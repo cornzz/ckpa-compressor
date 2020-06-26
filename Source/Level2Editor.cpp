@@ -49,7 +49,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             {
                 case 0: cls->setTextValueSuffix(" dB Threshold"); break;
                 case 1: cls->setTextValueSuffix(" Ratio"); break;
-                case 4: cls->setTextValueSuffix(" dB MakeupGain"); break;
+                case 4: cls->setTextValueSuffix(" dB Makeup Gain"); break;
                 default: break;
             }
 
@@ -102,7 +102,7 @@ void Level2Editor::paintOverChildren(Graphics& g)
 {
     auto r = getLocalBounds().reduced(editorMargin).toFloat();
 
-    for (int i : {0, 1, 2})
+    for (int i : {1, 0, 2})
     {
         Slider* cls = controlLineSliders.getUnchecked(i);
 

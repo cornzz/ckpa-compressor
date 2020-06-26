@@ -45,6 +45,14 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             cls->setLookAndFeel(&tos);
             cls->setPopupDisplayEnabled(true, false, this);
 
+            switch (i)
+            {
+                case 0: cls->setTextValueSuffix(" dB Threshold"); break;
+                case 1: cls->setTextValueSuffix(" Ratio"); break;
+                case 4: cls->setTextValueSuffix(" dB MakeupGain"); break;
+                default: break;
+            }
+
             SliderAttachment* controlLineSliderAttachment;
             sliderAttachments.add(controlLineSliderAttachment = 
                 new SliderAttachment(processor.parameters.valueTreeState, controlLineParamter->paramID, *cls));

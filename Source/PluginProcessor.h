@@ -31,7 +31,7 @@
 //==============================================================================
 
 class Ckpa_compressorAudioProcessor  : public AudioProcessor,
-    public ChangeBroadcaster
+                                       public ChangeBroadcaster
 {
 public:
     //==============================================================================

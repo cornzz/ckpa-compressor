@@ -164,9 +164,9 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     // Create copy of buffer after compression
     bufferAfter.makeCopyOf(buffer);
 
+    meterSourceInput.measureBlock(bufferBefore);
     if (level1active) // Push signal to level metersources
     {
-        meterSourceInput.measureBlock(bufferBefore);
         meterSourceOutput.measureBlock(buffer);
         meterSourceGainReduction.measureBlock(bufferGainReduction);
     }

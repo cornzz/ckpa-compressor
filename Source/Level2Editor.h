@@ -29,8 +29,8 @@
 //==============================================================================
 
 class Level2Editor : public Component,
-    public ChangeListener,
-    public Slider::Listener
+                     public ChangeListener,
+                     public Slider::Listener
 {
 public:
     Level2Editor(Ckpa_compressorAudioProcessor&);

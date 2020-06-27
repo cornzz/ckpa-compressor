@@ -21,20 +21,23 @@
 */
 
 #include "Level3Editor.h"
-#include <math.h>
 
 //==============================================================================
 
 Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
 {
+    ScopedValueSetter<bool> svs(init, false);
+
     rand = std::make_unique<Random>();
     anim = std::make_unique<ComponentAnimator>();
     Colour c = findColour(Slider::thumbColourId);
-    for (int i = 0; i < 74; ++i) {
+    for (int i = 0; i < numAtoms; ++i) {
         Atom* a;
         atoms.add(a = new Atom(rand.get(), anim.get(), c));
-        addAndMakeVisible(a, 0);
+        addChildComponent(a, 0);
     }
+    invisibleAtoms.resize(numAtoms);
+    std::iota(invisibleAtoms.begin(), invisibleAtoms.end(), 0);
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
     int ind[] = { 0, 1, 4 };
@@ -43,45 +46,100 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             Slider* aSlider;
             sliders.add(aSlider = new Slider());
 
+            aSlider->addListener(this);
             sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, parameter->paramID, *aSlider));
         }
     }
 
     sliders.add(compressionSlider = new Slider(Slider::LinearHorizontal, Slider::NoTextBox));
     compressionSlider->setLookAndFeel(&tos);
-    //compressionSlider->setPopupDisplayEnabled(true, false, this);
     
     compressionSlider->addListener(this);
     sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, "compression", *compressionSlider));
     addAndMakeVisible(*compressionSlider);
+
+    startTimerHz(30);
 }
 
 Level3Editor::~Level3Editor()
 {
     compressionSlider->setLookAndFeel(nullptr);
+    stopTimer();
 }
 
 void Level3Editor::sliderValueChanged(Slider* slider)
 {
-    if (slider == compressionSlider) {
-        float sliderValue = slider->getValue();
-        circleDiameter = (slider->getPositionOfValue(sliderValue) + 30) * 2.0f;
-        repaint();
-        
-        resizeAtoms();
-        
-        sliders.getFirst()->setValue(sliderValue * 1.5 - 30);
-        sliders.getUnchecked(1)->setValue(pow(sliderValue - 20, 2) / 25 + 1.0);
-        sliders.getUnchecked(2)->setValue(-0.2 * sliderValue + 4);
-    }
-    else if (slider == sliders.getUnchecked(0)) { // Threshold
+    if (!init)
+        return;
 
-    }
-    else if (slider == sliders.getUnchecked(1)) { // Ratio
+    double compressionValue;
 
-    }
-    else if (slider == sliders.getUnchecked(2)) { // Makeup gain
+    if (slider == compressionSlider) { // Compression circle changed
+        compressionValue = slider->getValue();
 
+        sliders.getUnchecked(0)->setValue(compressionValue * 1.5 - 30);              // Threshold
+        sliders.getUnchecked(1)->setValue(pow(compressionValue - 20, 2) / 25 + 1.0); // Ratio
+        sliders.getUnchecked(2)->setValue(-0.2 * compressionValue + 4);              // Makeup gain
+    }
+    else { // Threshold / ratio / makeup gain changed
+        double tempThresh = sliders.getUnchecked(0)->getValue();
+        double tempRatio = sliders.getUnchecked(1)->getValue();
+        double tempMakeup = sliders.getUnchecked(2)->getValue();
+
+        tempThresh = jlimit(0.0, 20.0, (tempThresh + 30) / 1.5);
+        tempRatio = jlimit(0.0, 20.0, 20 - sqrt((tempRatio - 1) * 25));
+        tempMakeup = jlimit(0.0, 20.0, (tempMakeup - 4) / -0.2);
+        compressionValue = (tempThresh == 20.0 || tempRatio == 20.0) ? 20.0 : (tempThresh + tempRatio + tempMakeup) / 3;
+
+        sliders.getLast()->setValue(compressionValue, dontSendNotification);
+    }
+
+    circleDiameter = (compressionSlider->getPositionOfValue(compressionValue) + 30) * 2.0f;
+    repaint();
+    resizeAtoms();
+}
+
+void Level3Editor::sliderDragStarted(Slider* slider)
+{
+    if (slider == compressionSlider)
+        dragging = true;
+}
+
+void Level3Editor::sliderDragEnded(Slider* slider)
+{
+    if (slider == compressionSlider)
+        dragging = false;
+}
+
+void Level3Editor::timerCallback()
+{
+    // Set atoms visible / invisible according to input level
+    float rms = processor.meterSourceInput.getRMSLevel(0);
+    float rmsDb = juce::Decibels::gainToDecibels(rms, -60.0f) + 3;
+    int visibleTarget = ceilf(jmin(1.0f, (1 - rmsDb / -70.0f)) * numAtoms);
+    std::random_device rand;
+    std::mt19937 g(rand());
+    std::shuffle(invisibleAtoms.begin(), invisibleAtoms.end(), g);
+    std::shuffle(visibleAtoms.begin(), visibleAtoms.end(), g);
+
+    // fadeIn() / fadeOut() while changing circle size causes atoms to go and stay out of bounds
+    while (visibleAtoms.size() < visibleTarget) {
+        int a = invisibleAtoms.back();
+        invisibleAtoms.pop_back();
+        if (!dragging)
+            anim->fadeIn(atoms.getUnchecked(a), 75);
+        else
+            atoms.getUnchecked(a)->setVisible(true);
+        visibleAtoms.push_back(a);
+    }
+    while (visibleAtoms.size() > visibleTarget) {
+        int a = visibleAtoms.back();
+        visibleAtoms.pop_back();
+        if (!dragging)
+            anim->fadeOut(atoms.getUnchecked(a), 75);
+        else
+            atoms.getUnchecked(a)->setVisible(false);
+        invisibleAtoms.push_back(a);
     }
 }
 
@@ -91,14 +149,10 @@ void Level3Editor::paint(Graphics& g)
     g.fillAll(bkg);
 
     Rectangle<float> r = getLocalBounds().toFloat().reduced(editorMargin);
-    //g.setColour(Colours::black);
-    //g.drawRect(r, 1.0f);
 
     auto rect = Rectangle<float>(circleDiameter, circleDiameter).withCentre(r.getCentre());
     g.setColour(findColour(Slider::thumbColourId));
     g.drawEllipse(rect, 2.0f);
-    //g.setColour(Colours::black);
-    //g.drawRect(rect, 1.0f);
 }
 
 void Level3Editor::resized()
@@ -138,31 +192,41 @@ void Atom::paint(Graphics& g)
 void Atom::resized()
 {
     if (!init) { // Set bounds of AtomEllipse only on init
-        ae->setBounds(getLocalBounds().withSizeKeepingCentre(6, 6));
+        ae->setBounds(getLocalBounds().withSizeKeepingCentre(4, 4));
         anim->sendChangeMessage(); // Start animation loop
         init = true;
     }
 }
 
-void Atom::resize(Rectangle<float> newBounds)
+void Atom::resize(Rectangle<int> newBounds)
 {
     if (!init) {
-        setBounds(newBounds.toNearestInt());
+        setBounds(newBounds);
         return;
     }
 
-    // Set position of ae in new bounds relative to position in old bounds
-    //Rectangle<int> destination = anim->getComponentDestination(ae.get());
-    anim->cancelAnimation(ae.get(), false);
     Rectangle<int> oldBounds = getBounds();
-    float relativeX = ae->getX() / (float) oldBounds.getWidth();
-    float relativeY = ae->getY() / (float) oldBounds.getHeight();
-    ae->setTopLeftPosition(newBounds.getWidth() * relativeX, newBounds.getHeight() * relativeY);
-    setBounds(newBounds.toNearestInt());
+    float oldWidth = static_cast<float>(oldBounds.getWidth());
+    float oldHeight = static_cast<float>(oldBounds.getHeight());
 
-    //destination = destination.constrainedWithin(newBounds.toNearestInt());
-    //int dist = hypot(destination.getX() - ae->getX(), destination.getY() - ae->getY());
-    //anim->animateComponent(ae.get(), destination, 1.0f, dist * 30, false, 1, 1);
+    // Get relative position of current destination in old bounds and cancel animation
+    Rectangle<int> destination = anim->getComponentDestination(ae.get());
+    float destRelativeX = destination.getX() / oldWidth;
+    float destRelativeY = destination.getY() / oldHeight;
+    anim->cancelAnimation(ae.get(), false);
+
+    // Set position of ae in new bounds relative to position in old bounds
+    float relativeX = ae->getX() / oldWidth;
+    float relativeY = ae->getY() / oldHeight;
+    setBounds(newBounds);
+    float newWidth = static_cast<float>(newBounds.getWidth());
+    float newHeight = static_cast<float>(newBounds.getHeight());
+    ae->setTopLeftPosition(newWidth * relativeX, newHeight * relativeY);
+
+    // Set relative position of current destination in new bounds
+    destination.setPosition(newWidth * destRelativeX, newHeight * destRelativeY);
+    int dist = hypot(destination.getX() - ae->getX(), destination.getY() - ae->getY());
+    anim->animateComponent(ae.get(), destination, 1.0f, dist * 30, false, 1, 1);
 }
 
 void Atom::changeListenerCallback(ChangeBroadcaster* source)
@@ -172,11 +236,11 @@ void Atom::changeListenerCallback(ChangeBroadcaster* source)
     if (!anim->isAnimating(ae.get())) { // AtomEllipse reached destination, find new dest. coordinates
         int newX, newY, dist;
         while (true) {
-            newX = rand->nextInt(getWidth() - ae->getWidth());  // TODO: this is bad
+            newX = rand->nextInt(getWidth() - ae->getWidth());
             newY = rand->nextInt(getHeight() - ae->getHeight());
             dist = hypot(newX - ae->getX(), newY - ae->getY());
             if (dist >= (getWidth() - ae->getWidth()) / 2 || ae->getWidth() >= getWidth() / 2)
-                break;
+                break; // Distance to new dest. is satisfactory
         }
         Rectangle<int> newBounds = ae->getBounds().withPosition(newX, newY);
         anim->animateComponent(ae.get(), newBounds, 1.0f, dist * 30, false, 1, 1);
@@ -189,87 +253,87 @@ void Level3Editor::resizeAtoms()
     auto r = Rectangle<float>(circleDiameter, circleDiameter).withCentre(getLocalBounds().toFloat().getCentre());;
     float atomSize = circleDiameter * 0.1;
 
-    atoms.getUnchecked(0)->resize(Rectangle<float>(r.getCentreX() - 4.8 * atomSize, r.getY() + r.getHeight() / 2 - atomSize - 0.8 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(1)->resize(Rectangle<float>(r.getCentreX() - 5 * atomSize,   r.getY() + r.getHeight() / 2 - atomSize,                  atomSize, atomSize));
-    atoms.getUnchecked(2)->resize(Rectangle<float>(r.getCentreX() - 5 * atomSize,   r.getY() + r.getHeight() / 2,                             atomSize, atomSize));
-    atoms.getUnchecked(3)->resize(Rectangle<float>(r.getCentreX() - 4.8 * atomSize, r.getY() + r.getHeight() / 2 + atomSize - 0.2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(0)->resize(Rectangle<int>(r.getCentreX() - 4.8 * atomSize, r.getY() + r.getHeight() / 2 - atomSize - 0.8 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(1)->resize(Rectangle<int>(r.getCentreX() - 5 * atomSize,   r.getY() + r.getHeight() / 2 - atomSize,                  atomSize, atomSize));
+    atoms.getUnchecked(2)->resize(Rectangle<int>(r.getCentreX() - 5 * atomSize,   r.getY() + r.getHeight() / 2,                             atomSize, atomSize));
+    atoms.getUnchecked(3)->resize(Rectangle<int>(r.getCentreX() - 4.8 * atomSize, r.getY() + r.getHeight() / 2 + atomSize - 0.2 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(4)->resize(Rectangle<float>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(5)->resize(Rectangle<float>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(6)->resize(Rectangle<float>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(7)->resize(Rectangle<float>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(8)->resize(Rectangle<float>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(9)->resize(Rectangle<float>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(4)->resize(Rectangle<int>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(5)->resize(Rectangle<int>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(6)->resize(Rectangle<int>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(7)->resize(Rectangle<int>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(8)->resize(Rectangle<int>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(9)->resize(Rectangle<int>(r.getCentreX() - 4 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(10)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(11)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(12)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(13)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(14)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(15)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(16)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(17)->resize(Rectangle<float>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(10)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(11)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(12)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(13)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(14)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(15)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(16)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(17)->resize(Rectangle<int>(r.getCentreX() - 3 * atomSize, r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(18)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 4.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(19)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 3.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(20)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 2.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(21)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 1.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(22)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 0.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(23)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 0.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(24)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 1.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(25)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 2.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(26)->resize(Rectangle<float>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 3.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(18)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 4.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(19)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 3.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(20)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 2.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(21)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 1.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(22)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 - 0.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(23)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 0.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(24)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 1.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(25)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 2.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(26)->resize(Rectangle<int>(r.getCentreX() - 2 * atomSize, r.getY() + r.getHeight() / 2 + 3.5 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(27)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(28)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(29)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(30)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(31)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(32)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(33)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(34)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(35)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(36)->resize(Rectangle<float>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 4 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(27)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(28)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(29)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(30)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(31)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(32)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(33)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(34)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(35)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(36)->resize(Rectangle<int>(r.getCentreX() - 1 * atomSize, r.getY() + r.getHeight() / 2 + 4 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(37)->resize(Rectangle<float>(r.getCentreX() + 3.8 * atomSize, r.getY() + r.getHeight() / 2 - atomSize - 0.8 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(38)->resize(Rectangle<float>(r.getCentreX() + 4 * atomSize,   r.getY() + r.getHeight() / 2 - atomSize,                  atomSize, atomSize));
-    atoms.getUnchecked(39)->resize(Rectangle<float>(r.getCentreX() + 4 * atomSize,   r.getY() + r.getHeight() / 2,                             atomSize, atomSize));
-    atoms.getUnchecked(40)->resize(Rectangle<float>(r.getCentreX() + 3.8 * atomSize, r.getY() + r.getHeight() / 2 + atomSize - 0.2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(37)->resize(Rectangle<int>(r.getCentreX() + 3.8 * atomSize, r.getY() + r.getHeight() / 2 - atomSize - 0.8 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(38)->resize(Rectangle<int>(r.getCentreX() + 4 * atomSize,   r.getY() + r.getHeight() / 2 - atomSize,                  atomSize, atomSize));
+    atoms.getUnchecked(39)->resize(Rectangle<int>(r.getCentreX() + 4 * atomSize,   r.getY() + r.getHeight() / 2,                             atomSize, atomSize));
+    atoms.getUnchecked(40)->resize(Rectangle<int>(r.getCentreX() + 3.8 * atomSize, r.getY() + r.getHeight() / 2 + atomSize - 0.2 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(41)->resize(Rectangle<float>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(42)->resize(Rectangle<float>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(43)->resize(Rectangle<float>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(44)->resize(Rectangle<float>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(45)->resize(Rectangle<float>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(46)->resize(Rectangle<float>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(41)->resize(Rectangle<int>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(42)->resize(Rectangle<int>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(43)->resize(Rectangle<int>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(44)->resize(Rectangle<int>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(45)->resize(Rectangle<int>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(46)->resize(Rectangle<int>(r.getCentreX() + 3 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(47)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(48)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(49)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(50)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(51)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(52)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(53)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(54)->resize(Rectangle<float>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(47)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(48)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(49)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(50)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(51)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(52)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(53)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(54)->resize(Rectangle<int>(r.getCentreX() + 2 * atomSize, r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(55)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 4.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(56)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 3.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(57)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 2.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(58)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 1.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(59)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 0.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(60)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 0.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(61)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 1.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(62)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 2.5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(63)->resize(Rectangle<float>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 3.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(55)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 4.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(56)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 3.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(57)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 2.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(58)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 1.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(59)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 - 0.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(60)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 0.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(61)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 1.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(62)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 2.5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(63)->resize(Rectangle<int>(r.getCentreX() + 1 * atomSize, r.getY() + r.getHeight() / 2 + 3.5 * atomSize, atomSize, atomSize));
 
-    atoms.getUnchecked(64)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 5 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(65)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(66)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(67)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(68)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(69)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(70)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(71)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(72)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
-    atoms.getUnchecked(73)->resize(Rectangle<float>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 4 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(64)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 5 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(65)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 4 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(66)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(67)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(68)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 - 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(69)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 0 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(70)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 1 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(71)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 2 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(72)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 3 * atomSize, atomSize, atomSize));
+    atoms.getUnchecked(73)->resize(Rectangle<int>(r.getCentreX(), r.getY() + r.getHeight() / 2 + 4 * atomSize, atomSize, atomSize));
 }

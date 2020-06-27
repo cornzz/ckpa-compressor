@@ -558,7 +558,7 @@ void drawMeterBar (juce::Graphics& g,
                    const juce::Rectangle<float> bounds,
                    const float rms, const float peak) override
 {
-    const auto infinity = meterType & foleys::LevelMeter::Reduction ? -30.0f :  -80.0f;
+    const auto infinity = meterType & foleys::LevelMeter::Reduction ? -30.0f :  -60.0f;
     const auto rmsDb  = juce::Decibels::gainToDecibels (rms,  infinity);
     const auto peakDb = juce::Decibels::gainToDecibels (peak, infinity);
 

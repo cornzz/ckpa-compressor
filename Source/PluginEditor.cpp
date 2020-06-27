@@ -39,13 +39,13 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
 
     ShapeButton* powerButton;
     buttons.add(powerButton = new ShapeButton("powerButton",
-        getLookAndFeel().findColour(Slider::thumbColourId),
-        getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.1),
-        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15)));
+        findColour(Slider::thumbColourId),
+        findColour(Slider::thumbColourId).brighter(0.1),
+        findColour(Slider::thumbColourId).darker(0.15)));
     // On and off colour sets are switched around, since this used to be the "bypass button"
-    powerButton->setOnColours(getLookAndFeel().findColour(ResizableWindow::backgroundColourId),
-        getLookAndFeel().findColour(ResizableWindow::backgroundColourId).brighter(0.1),
-        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.2));
+    powerButton->setOnColours(findColour(ResizableWindow::backgroundColourId),
+        findColour(ResizableWindow::backgroundColourId).brighter(0.1),
+        findColour(Slider::thumbColourId).darker(0.2));
     powerButton->shouldUseOnColours(true);
     Path path;
     path.restoreFromString(powerButtonPath);

@@ -73,6 +73,7 @@ void Level3Editor::sliderValueChanged(Slider* slider)
         return;
 
     double compressionValue;
+    bool circleChanged = false;
 
     if (slider == compressionSlider) { // Compression circle changed
         compressionValue = slider->getValue();
@@ -80,8 +81,9 @@ void Level3Editor::sliderValueChanged(Slider* slider)
         sliders.getUnchecked(0)->setValue(compressionValue * 1.5 - 30);              // Threshold
         sliders.getUnchecked(1)->setValue(pow(compressionValue - 20, 2) / 25 + 1.0); // Ratio
         sliders.getUnchecked(2)->setValue(-0.2 * compressionValue + 4);              // Makeup gain
+        circleChanged = true;
     }
-    else { // Threshold / ratio / makeup gain changed
+    else if (!dragging) { // Threshold / ratio / makeup gain changed
         double tempThresh = sliders.getUnchecked(0)->getValue();
         double tempRatio = sliders.getUnchecked(1)->getValue();
         double tempMakeup = sliders.getUnchecked(2)->getValue();
@@ -92,11 +94,14 @@ void Level3Editor::sliderValueChanged(Slider* slider)
         compressionValue = (tempThresh == 20.0 || tempRatio == 20.0) ? 20.0 : (tempThresh + tempRatio + tempMakeup) / 3;
 
         sliders.getLast()->setValue(compressionValue, dontSendNotification);
+        circleChanged = true;
     }
 
-    circleDiameter = (compressionSlider->getPositionOfValue(compressionValue) + 30) * 2.0f;
-    repaint();
-    resizeAtoms();
+    if (circleChanged) {
+        circleDiameter = (compressionSlider->getPositionOfValue(compressionValue) + 30) * 2.0f;
+        repaint();
+        resizeAtoms();
+    }
 }
 
 void Level3Editor::sliderDragStarted(Slider* slider)
@@ -113,7 +118,7 @@ void Level3Editor::sliderDragEnded(Slider* slider)
 
 void Level3Editor::timerCallback()
 {
-    // Set atoms visible / invisible according to input level
+    // Change amount of visible atoms according to current input level
     float rms = processor.meterSourceInput.getRMSLevel(0);
     float rmsDb = juce::Decibels::gainToDecibels(rms, -60.0f) + 3;
     int visibleTarget = ceilf(jmin(1.0f, (1 - rmsDb / -70.0f)) * numAtoms);
@@ -165,6 +170,7 @@ void Level3Editor::resized()
         .withTrimmedLeft(30)
         .removeFromLeft(r.getHeight() / 2 - 20);
     compressionSlider->setBounds(r);
+    // Set circle size, atom bounds, trigger repaint and start atom animation
     sliderValueChanged(compressionSlider);
 }
 

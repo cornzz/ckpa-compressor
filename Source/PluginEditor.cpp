@@ -30,22 +30,22 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     processor(p),
     tabs(p, new Level1Editor(p), new Level2Editor(p), new Level3Editor(p))
 {
-    setSize(editorWidth, 383);
-    addAndMakeVisible(tabs);
-
-    //======================================
+    Colour backgroundColour = findColour(ResizableWindow::backgroundColourId);
+    Colour sliderThumbColour = findColour(Slider::thumbColourId);
+    tooltipWindow->setOpaque(false);
+    tooltipWindow->setColour(TooltipWindow::backgroundColourId, Colours::transparentWhite);
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
     //Power Button
     ShapeButton* powerButton;
     buttons.add(powerButton = new ShapeButton("powerButton",
-        findColour(Slider::thumbColourId),
-        findColour(Slider::thumbColourId).brighter(0.1),
-        findColour(Slider::thumbColourId).darker(0.15)));
+        sliderThumbColour,
+        sliderThumbColour.brighter(0.1),
+        sliderThumbColour.darker(0.15)));
     // On and off colour sets are switched around, since this used to be the "bypass button"
-    powerButton->setOnColours(findColour(ResizableWindow::backgroundColourId),
-        findColour(ResizableWindow::backgroundColourId).brighter(0.1),
-        findColour(Slider::thumbColourId).darker(0.2));
+    powerButton->setOnColours(backgroundColour,
+        backgroundColour.brighter(0.1),
+        sliderThumbColour.darker(0.2));
     powerButton->shouldUseOnColours(true);
     powerButton->setTooltip("Bypass");
     Path pbPath;
@@ -57,15 +57,13 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     buttonAttachments.add(powerButtonAttachment = new ButtonAttachment(processor.parameters.valueTreeState, buttonParameter->paramID, *powerButton));
     addAndMakeVisible(powerButton);
     powerButton->setClickingTogglesState(true);
-    Rectangle<int> rPower = getLocalBounds();
-    powerButton->setBounds(rPower.removeFromBottom(39).removeFromRight(39)); // TODO: Should be done in resized()
 
     //Reset Button
     ShapeButton* resetButton;
     buttons.add(resetButton = new ShapeButton("resetButton",
-        getLookAndFeel().findColour(Slider::thumbColourId),
-        getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.1),
-        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15)));
+        sliderThumbColour,
+        sliderThumbColour.brighter(0.1),
+        sliderThumbColour.darker(0.15)));
     resetButton->setTooltip("Reset");
     Path rbPath;
     rbPath.restoreFromString(resetButtonPath);
@@ -73,8 +71,11 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
 
     resetButton->onClick = [this] { resetParameters(); };
     addAndMakeVisible(resetButton);
-    Rectangle<int> rReset = getLocalBounds();
-    resetButton->setBounds(rReset.removeFromBottom(39).withTrimmedRight(39).removeFromRight(39)); // TODO: Should be done in resized()
+
+    //======================================
+
+    addAndMakeVisible(tabs, 0);
+    setSize(editorWidth, 383);
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
@@ -90,6 +91,11 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 {
     Rectangle<int> r = getLocalBounds();
     tabs.setBounds(r);
+
+    r = r.removeFromBottom(39);
+    for (ShapeButton* sb : buttons) {
+        sb->setBounds(r.removeFromRight(39));
+    }
 }
 
 void Ckpa_compressorAudioProcessorEditor::resetParameters()

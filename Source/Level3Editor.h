@@ -104,6 +104,9 @@ private:
     bool init = true;
     bool dragging = false;
 
+    float circleDiameter = 0;
+    int numAtoms = 74;
+
     OwnedArray<Slider> sliders;
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
@@ -115,9 +118,6 @@ private:
     std::unique_ptr<ComponentAnimator> anim;
     OwnedArray<Atom> atoms;
     std::vector<int> visibleAtoms, invisibleAtoms;
-
-    float circleDiameter = 0;
-    int numAtoms = 74;
 
     //==============================================================================
 

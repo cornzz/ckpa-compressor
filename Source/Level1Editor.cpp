@@ -31,7 +31,6 @@ Level1Editor::Level1Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
     int editorHeight = 2 * editorMargin;
     for (int i = 0; i < parameters.size() - 1; ++i) {
         if (const AudioProcessorParameterWithID* parameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[i])) {
-
             if (processor.parameters.parameterTypes[i] == "Slider") {
                 Slider* aSlider;
                 sliders.add(aSlider = new Slider());

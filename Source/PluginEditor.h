@@ -46,13 +46,14 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Ckpa_compressorAudioProcessor& processor;
-    SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     enum {
         editorWidth = 500,
         editorMargin = 10,
         editorPadding = 10,
     };
+
+    SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     void resetParameters();
 

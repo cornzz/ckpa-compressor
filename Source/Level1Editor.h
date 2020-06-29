@@ -47,7 +47,6 @@ private:
         sliderTextEntryBoxWidth = 100,
         sliderTextEntryBoxHeight = 25,
         sliderHeight = 25,
-        buttonHeight = 25,
         levelMeterHeight = 20,
         labelWidth = 100
     };

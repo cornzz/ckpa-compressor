@@ -99,7 +99,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
 
     // Create copy of buffer before compression
     bufferBefore.makeCopyOf(buffer);
-    
+
     // Don't compress if bypass activated
     if (!(bool) paramBypass.getTargetValue()) {
         if (level1active)

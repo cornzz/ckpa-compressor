@@ -67,6 +67,12 @@ public:
         updateValue(newValue);
     }
 
+    void resetParameter()
+    {
+        RangedAudioParameter* param = parametersManager.valueTreeState.getParameter(paramID);
+        param->setValueNotifyingHost(param->getDefaultValue());
+    }
+
     PluginParametersManager& parametersManager;
     std::function<float(float)> callback;
     String paramID;

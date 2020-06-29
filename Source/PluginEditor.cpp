@@ -36,7 +36,7 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
     //======================================
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
-
+    //Power Button
     ShapeButton* powerButton;
     buttons.add(powerButton = new ShapeButton("powerButton",
         findColour(Slider::thumbColourId),
@@ -47,18 +47,34 @@ Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_co
         findColour(ResizableWindow::backgroundColourId).brighter(0.1),
         findColour(Slider::thumbColourId).darker(0.2));
     powerButton->shouldUseOnColours(true);
-    Path path;
-    path.restoreFromString(powerButtonPath);
-    powerButton->setShape(path, true, true, true);
+    powerButton->setTooltip("Bypass");
+    Path pbPath;
+    pbPath.restoreFromString(powerButtonPath);
+    powerButton->setShape(pbPath, true, true, true);
 
     const AudioProcessorParameterWithID* buttonParameter = dynamic_cast<AudioProcessorParameterWithID*> (parameters[5]);
     ButtonAttachment* powerButtonAttachment;
     buttonAttachments.add(powerButtonAttachment = new ButtonAttachment(processor.parameters.valueTreeState, buttonParameter->paramID, *powerButton));
     addAndMakeVisible(powerButton);
     powerButton->setClickingTogglesState(true);
+    Rectangle<int> rPower = getLocalBounds();
+    powerButton->setBounds(rPower.removeFromBottom(39).removeFromRight(39)); // TODO: Should be done in resized()
 
-    Rectangle<int> r = getLocalBounds();
-    powerButton->setBounds(r.removeFromBottom(39).removeFromRight(39)); // TODO: Should be done in resized()
+    //Reset Button
+    ShapeButton* resetButton;
+    buttons.add(resetButton = new ShapeButton("resetButton",
+        getLookAndFeel().findColour(Slider::thumbColourId),
+        getLookAndFeel().findColour(Slider::thumbColourId).brighter(0.1),
+        getLookAndFeel().findColour(Slider::thumbColourId).darker(0.15)));
+    resetButton->setTooltip("Reset");
+    Path rbPath;
+    rbPath.restoreFromString(resetButtonPath);
+    resetButton->setShape(rbPath, true, true, true);
+
+    resetButton->onClick = [this] { resetParameters(); };
+    addAndMakeVisible(resetButton);
+    Rectangle<int> rReset = getLocalBounds();
+    resetButton->setBounds(rReset.removeFromBottom(39).withTrimmedRight(39).removeFromRight(39)); // TODO: Should be done in resized()
 }
 
 Ckpa_compressorAudioProcessorEditor::~Ckpa_compressorAudioProcessorEditor()
@@ -74,5 +90,14 @@ void Ckpa_compressorAudioProcessorEditor::resized()
 {
     Rectangle<int> r = getLocalBounds();
     tabs.setBounds(r);
-    //buttons.getLast()->setBounds(r.removeFromBottom(40).removeFromRight(40));
+}
+
+void Ckpa_compressorAudioProcessorEditor::resetParameters()
+{
+    processor.paramThreshold.resetParameter();
+    processor.paramRatio.resetParameter();
+    processor.paramAttack.resetParameter();
+    processor.paramRelease.resetParameter();
+    processor.paramMakeupGain.resetParameter();
+    processor.paramCompression.resetParameter();
 }

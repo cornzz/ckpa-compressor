@@ -31,6 +31,8 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
     visualiser.clear();
     addAndMakeVisible(visualiser);
 
+    showDragMe = true;
+
     //============ Control Lines ===========
 
     const Array<AudioProcessorParameter*> parameters = processor.getParameters();
@@ -89,16 +91,14 @@ void Level2Editor::changeListenerCallback(ChangeBroadcaster* source)
 
 void Level2Editor::sliderValueChanged(Slider* slider)
 {
-    if (processor.level2active && dragging)
-        showBubbleMessage(slider);
+    if (dragging)
+        processor.showBubbleMessage(slider, popupParent);
     repaint(); // Necessary to prevent the control lines from lagging behind
 }
 
 void Level2Editor::sliderDragStarted(Slider* slider)
 {
     dragging = true;
-    if (processor.level2active)
-        showBubbleMessage(slider);
 }
 
 void Level2Editor::sliderDragEnded(Slider* slider)
@@ -106,28 +106,16 @@ void Level2Editor::sliderDragEnded(Slider* slider)
     dragging = false;
 }
 
-
-void Level2Editor::showBubbleMessage(Slider* slider)
-{
-    popupDisplay.reset(new BubbleMessageComponent(0));
-    popupParent->addChildComponent(popupDisplay.get());
-    int sliderTop = slider->getY();
-    int sliderX = slider->getX();
-    int sliderPos = slider->getPositionOfValue(slider->getValue());
-    int x = slider->isHorizontal() ? sliderX + sliderPos : sliderX + slider->getWidth() / 2;
-    int y = slider->isHorizontal() ? sliderTop + slider->getHeight() / 2 : sliderTop + sliderPos;
-    Point<int> pos(x, y);
-    pos.applyTransform(slider->getTransform());
-    AttributedString text(String(slider->getValue(), 2) + slider->getTextValueSuffix());
-    text.setColour(Colours::white);
-    popupDisplay.get()->showAt(Rectangle<int>(25, 25).withCentre(pos), text, 300, false, false);
-}
-
 //==============================================================================
 
 void Level2Editor::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+
+    if (showDragMe) {
+        processor.showBubbleMessage(controlLineSliders[1], popupParent, true, 1200);
+        showDragMe = false;
+    }
 }
 
 void Level2Editor::paintOverChildren(Graphics& g)

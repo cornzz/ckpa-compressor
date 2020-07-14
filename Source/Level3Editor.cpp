@@ -24,9 +24,12 @@
 
 //==============================================================================
 
-Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
+Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p, Component* parentForPopup) : processor(p),
+    popupParent(parentForPopup)
 {
     ScopedValueSetter<bool> svs(init, false);
+    
+    showDragMe = true;
 
     rand = std::make_unique<Random>();
     anim = std::make_unique<ComponentAnimator>();
@@ -159,6 +162,11 @@ void Level3Editor::paint(Graphics& g)
     auto rect = Rectangle<float>(circleDiameter, circleDiameter).withCentre(r.getCentre());
     g.setColour(findColour(Slider::thumbColourId));
     g.drawEllipse(rect, 2.0f);
+
+    if (showDragMe) {
+        processor.showBubbleMessage(compressionSlider, popupParent, true, 1200);
+        showDragMe = false;
+    }
 }
 
 void Level3Editor::resized()

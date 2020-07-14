@@ -49,6 +49,8 @@ public:
    #endif
 
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
+    float calculateAttackOrRelease(float value);
+    void showBubbleMessage(Slider* slider, Component* popupParent, bool dragMe = false, int timeout = 300);
 
     //==============================================================================
 
@@ -95,7 +97,6 @@ public:
 
     float inverseSampleRate;
     float inverseE;
-    float calculateAttackOrRelease(float value);
 
     //======================================
 
@@ -113,8 +114,7 @@ public:
     foleys::LevelMeterSource meterSourceOutput;
     foleys::LevelMeterSource meterSourceGainReduction;
 
-    bool level1active = false;
-    bool level2active = false;
+    std::unique_ptr<BubbleMessageComponent> popupDisplay;
 
 private:
 

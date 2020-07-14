@@ -79,7 +79,7 @@ class Level3Editor : public Component,
                      public Timer
 {
 public:
-    Level3Editor(Ckpa_compressorAudioProcessor&);
+    Level3Editor(Ckpa_compressorAudioProcessor& p, Component* parentForPopup);
     ~Level3Editor();
 
     void sliderValueChanged(Slider*) override;
@@ -113,6 +113,9 @@ private:
 
     ThumbOnlySlider tos;
     Slider* compressionSlider;
+
+    Component* popupParent;
+    bool showDragMe = false;
 
     std::unique_ptr<Random> rand;
     std::unique_ptr<ComponentAnimator> anim;

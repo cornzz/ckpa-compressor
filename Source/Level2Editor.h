@@ -33,14 +33,13 @@ class Level2Editor : public Component,
                      public Slider::Listener
 {
 public:
-    Level2Editor(Ckpa_compressorAudioProcessor&, Component* parentForPopup);
+    Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentForPopup);
     ~Level2Editor();
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void sliderValueChanged(Slider* slider) override;
     void sliderDragStarted(Slider* slider) override;
     void sliderDragEnded(Slider* slider) override;
-    void showBubbleMessage(Slider* slider);
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics& g) override;
@@ -63,9 +62,9 @@ private:
     typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
     OwnedArray<SliderAttachment> sliderAttachments;
 
-    std::unique_ptr<BubbleMessageComponent> popupDisplay;
     Component* popupParent;
     bool dragging = false;
+    bool showDragMe = false;
 
     //==============================================================================
 

@@ -30,7 +30,7 @@
 class Level1Editor : public Component
 {
 public:
-    Level1Editor(Ckpa_compressorAudioProcessor&);
+    Level1Editor(Ckpa_compressorAudioProcessor& p);
     ~Level1Editor();
 
     void paint(Graphics&) override;

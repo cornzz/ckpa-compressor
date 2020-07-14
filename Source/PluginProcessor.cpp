@@ -102,8 +102,7 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
 
     // Don't compress if bypass activated
     if (!(bool) paramBypass.getTargetValue()) {
-        if (level1active)
-            bufferGainReduction.makeCopyOf(buffer);
+        bufferGainReduction.makeCopyOf(buffer);
 
         mixedDownInput.clear();
         for (int channel = 0; channel < numInputChannels; ++channel)
@@ -146,17 +145,14 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 float newValue = oldValue * control;
                 buffer.setSample(channel, sample, newValue);
                 float reductionValue = control < 1 ? oldValue - newValue : 0;
-                if (level1active)
-                    bufferGainReduction.setSample(channel, sample, reductionValue);
+                bufferGainReduction.setSample(channel, sample, reductionValue);
             }
         }
     }
     else {
-        if (level1active) {
-            for (int sample = 0; sample < numSamples; ++sample) {
-                for (int channel = 0; channel < numInputChannels; ++channel) {
-                    bufferGainReduction.setSample(channel, sample, 0);
-                }
+        for (int sample = 0; sample < numSamples; ++sample) {
+            for (int channel = 0; channel < numInputChannels; ++channel) {
+                bufferGainReduction.setSample(channel, sample, 0);
             }
         }
     }
@@ -164,12 +160,10 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     // Create copy of buffer after compression
     bufferAfter.makeCopyOf(buffer);
 
+    // Push signal to level metersources
     meterSourceInput.measureBlock(bufferBefore);
-    if (level1active) // Push signal to level metersources
-    {
-        meterSourceOutput.measureBlock(buffer);
-        meterSourceGainReduction.measureBlock(bufferGainReduction);
-    }
+    meterSourceOutput.measureBlock(buffer);
+    meterSourceGainReduction.measureBlock(bufferGainReduction);
 
     // Notify visualiser parent that buffer changed
     sendChangeMessage();
@@ -188,6 +182,23 @@ float Ckpa_compressorAudioProcessor::calculateAttackOrRelease(float value)
         return pow(inverseE, inverseSampleRate / value);
 }
 
+void Ckpa_compressorAudioProcessor::showBubbleMessage(Slider* slider, Component* popupParent, bool dragMe, int timeout)
+{
+    popupDisplay.reset(new BubbleMessageComponent(dragMe ? 150 : 0));
+    popupParent->addChildComponent(popupDisplay.get());
+    int sliderTop = slider->getY();
+    int sliderX = slider->getX();
+    int sliderPos = slider->getPositionOfValue(slider->getValue());
+    int x = slider->isHorizontal() ? sliderX + sliderPos : sliderX + slider->getWidth() / 2;
+    int y = slider->isHorizontal() ? sliderTop + slider->getHeight() / 2 : sliderTop + sliderPos;
+    Point<int> pos(x, y);
+    pos.applyTransform(slider->getTransform());
+    AttributedString text(String(slider->getValue(), 2) + slider->getTextValueSuffix());
+    if (dragMe)
+        text.setText("Drag me!");
+    text.setColour(Colours::white);
+    popupDisplay.get()->showAt(Rectangle<int>(25, 25).withCentre(pos), text, timeout, false, false);
+}
 
 //==============================================================================
 

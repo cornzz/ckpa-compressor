@@ -28,7 +28,7 @@
 Ckpa_compressorAudioProcessorEditor::Ckpa_compressorAudioProcessorEditor(Ckpa_compressorAudioProcessor& p)
     : AudioProcessorEditor(&p),
     processor(p),
-    tabs(p, new Level1Editor(p), new Level2Editor(p), new Level3Editor(p))
+    tabs(p, new Level1Editor(p), new Level2Editor(p, this), new Level3Editor(p))
 {
     Colour backgroundColour = findColour(ResizableWindow::backgroundColourId);
     Colour sliderThumbColour = findColour(Slider::thumbColourId);

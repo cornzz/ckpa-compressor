@@ -24,7 +24,7 @@
 
 //==============================================================================
 
-Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
+Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentForPopup) : processor(p)
 {
     processor.addChangeListener(this);
     visualiser.clear();
@@ -43,7 +43,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p) : processor(p)
             auto colour = (i == 0) ? Colour(0xFFb52f2f) : ((i == 1) ? Colour(0xFFCB8035) : Colour(0xFF2E8B00));
             cls->setColour(Slider::thumbColourId, colour);
             cls->setLookAndFeel(&tos);
-            cls->setPopupDisplayEnabled(true, false, this);
+            cls->setPopupDisplayEnabled(true, false, parentForPopup);
 
             switch (i)
             {

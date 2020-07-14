@@ -33,7 +33,7 @@ class Level2Editor : public Component,
                      public Slider::Listener
 {
 public:
-    Level2Editor(Ckpa_compressorAudioProcessor&);
+    Level2Editor(Ckpa_compressorAudioProcessor&, Component* parentForPopup);
     ~Level2Editor();
 
     void changeListenerCallback(ChangeBroadcaster* source) override;

@@ -24,7 +24,8 @@
 
 //==============================================================================
 
-Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentForPopup) : processor(p)
+Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentForPopup) : processor(p),
+    popupParent(parentForPopup)
 {
     processor.addChangeListener(this);
     visualiser.clear();
@@ -43,7 +44,6 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
             auto colour = (i == 0) ? Colour(0xFFb52f2f) : ((i == 1) ? Colour(0xFFCB8035) : Colour(0xFF2E8B00));
             cls->setColour(Slider::thumbColourId, colour);
             cls->setLookAndFeel(&tos);
-            cls->setPopupDisplayEnabled(true, false, parentForPopup);
 
             switch (i)
             {
@@ -78,6 +78,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
 Level2Editor::~Level2Editor()
 {
     processor.removeChangeListener(this);
+    popupParent = nullptr;
 }
 
 void Level2Editor::changeListenerCallback(ChangeBroadcaster* source)
@@ -88,7 +89,38 @@ void Level2Editor::changeListenerCallback(ChangeBroadcaster* source)
 
 void Level2Editor::sliderValueChanged(Slider* slider)
 {
+    if (processor.level2active && dragging)
+        showBubbleMessage(slider);
     repaint(); // Necessary to prevent the control lines from lagging behind
+}
+
+void Level2Editor::sliderDragStarted(Slider* slider)
+{
+    dragging = true;
+    if (processor.level2active)
+        showBubbleMessage(slider);
+}
+
+void Level2Editor::sliderDragEnded(Slider* slider)
+{
+    dragging = false;
+}
+
+
+void Level2Editor::showBubbleMessage(Slider* slider)
+{
+    popupDisplay.reset(new BubbleMessageComponent(0));
+    popupParent->addChildComponent(popupDisplay.get());
+    int sliderTop = slider->getY();
+    int sliderX = slider->getX();
+    int sliderPos = slider->getPositionOfValue(slider->getValue());
+    int x = slider->isHorizontal() ? sliderX + sliderPos : sliderX + slider->getWidth() / 2;
+    int y = slider->isHorizontal() ? sliderTop + slider->getHeight() / 2 : sliderTop + sliderPos;
+    Point<int> pos(x, y);
+    pos.applyTransform(slider->getTransform());
+    AttributedString text(String(slider->getValue(), 2) + slider->getTextValueSuffix());
+    text.setColour(Colours::white);
+    popupDisplay.get()->showAt(Rectangle<int>(25, 25).withCentre(pos), text, 300, false, false);
 }
 
 //==============================================================================

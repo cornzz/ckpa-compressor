@@ -154,6 +154,7 @@ public:
     void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
     {
         processor.level1active = (newCurrentTabName == "Level 1");
+        processor.level2active = (newCurrentTabName == "Level 2");
     }
 
 private:

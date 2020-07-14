@@ -114,6 +114,7 @@ public:
     foleys::LevelMeterSource meterSourceGainReduction;
 
     bool level1active = false;
+    bool level2active = false;
 
 private:
 

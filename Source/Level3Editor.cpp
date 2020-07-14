@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    Code by cornzz and Philip Arms.
+    Code by cornzz.
     Uses code by Juan Gil <https://juangil.com/>
 
     This program is free software: you can redistribute it and/or modify
@@ -32,11 +32,10 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
     showDragMe = true;
 
     rand = std::make_unique<Random>();
-    anim = std::make_unique<ComponentAnimator>();
     Colour c = findColour(Slider::thumbColourId);
     for (int i = 0; i < numAtoms; ++i) {
         Atom* a;
-        atoms.add(a = new Atom(rand.get(), anim.get(), c));
+        atoms.add(a = new Atom(rand.get(), c));
         addChildComponent(a, 0);
     }
     invisibleAtoms.resize(numAtoms);
@@ -56,7 +55,6 @@ Level3Editor::Level3Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
 
     sliders.add(compressionSlider = new Slider(Slider::LinearHorizontal, Slider::NoTextBox));
     compressionSlider->setLookAndFeel(&tos);
-    // compressionSlider->setPopupDisplayEnabled(true, false, this);
 
     compressionSlider->addListener(this);
     sliderAttachments.add(new SliderAttachment(processor.parameters.valueTreeState, "compression", *compressionSlider));
@@ -135,19 +133,21 @@ void Level3Editor::timerCallback()
     while (visibleAtoms.size() < visibleTarget) {
         int a = invisibleAtoms.back();
         invisibleAtoms.pop_back();
+        Atom* atom = atoms.getUnchecked(a);
         if (!dragging)
-            anim->fadeIn(atoms.getUnchecked(a), 75);
+            atom->anim->fadeIn(atom, 75);
         else
-            atoms.getUnchecked(a)->setVisible(true);
+            atom->setVisible(true);
         visibleAtoms.push_back(a);
     }
     while (visibleAtoms.size() > visibleTarget) {
         int a = visibleAtoms.back();
         visibleAtoms.pop_back();
+        Atom* atom = atoms.getUnchecked(a);
         if (!dragging)
-            anim->fadeOut(atoms.getUnchecked(a), 75);
+            atom->anim->fadeOut(atom, 75);
         else
-            atoms.getUnchecked(a)->setVisible(false);
+            atom->setVisible(false);
         invisibleAtoms.push_back(a);
     }
 }
@@ -185,12 +185,14 @@ void Level3Editor::resized()
 
 //==============================================================================
 
-Atom::Atom(Random* r, ComponentAnimator* a, Colour c) : rand(r),
-    anim(a)
+Atom::Atom(Random* r, Colour c) : rand(r)
 {
     ae = std::make_unique<AtomEllipse>(c);
     addAndMakeVisible(*ae);
     
+    anim = std::make_unique<ComponentAnimator>();
+    // As soon as animator is done animating atom, an animation to new coordinates should be started
+    // See changeListenerCallback()
     anim->addChangeListener(this);
 }
 
@@ -262,6 +264,7 @@ void Atom::changeListenerCallback(ChangeBroadcaster* source)
     }
 }
 
+//==============================================================================
 
 void Level3Editor::resizeAtoms()
 {

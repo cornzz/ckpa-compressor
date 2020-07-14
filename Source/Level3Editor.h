@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    Code by cornzz and Philip Arms.
+    Code by cornzz.
     Uses code by Juan Gil <https://juangil.com/>
 
     This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ class Atom : public Component,
              public ChangeListener
 {
 public:
-    Atom(Random*, ComponentAnimator*, Colour);
+    Atom(Random*, Colour);
     ~Atom();
 
     void paint(Graphics&) override;
@@ -59,13 +59,14 @@ public:
         Colour c;
     };
 
+    std::unique_ptr<ComponentAnimator> anim;
+
 private:
     bool init = false;
 
     std::unique_ptr<AtomEllipse> ae;
 
     Random* rand;
-    ComponentAnimator* anim;
 
     int width, height;
 
@@ -118,7 +119,6 @@ private:
     bool showDragMe = false;
 
     std::unique_ptr<Random> rand;
-    std::unique_ptr<ComponentAnimator> anim;
     OwnedArray<Atom> atoms;
     std::vector<int> visibleAtoms, invisibleAtoms;
 

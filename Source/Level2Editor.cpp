@@ -43,7 +43,7 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
             Slider* cls;
             controlLineSliders.add(cls = new Slider(Slider::LinearVertical, Slider::NoTextBox));
 
-            auto colour = (i == 0) ? Colour(0xFFb52f2f) : ((i == 1) ? Colour(0xFFCB8035) : Colour(0xFF2E8B00));
+            auto colour = (i == 0) ? Colour(0xFF8B3350) : ((i == 1) ? Colour(0xFFCB8035) : Colour(0xFF2E8B00));
             cls->setColour(Slider::thumbColourId, colour);
             cls->setLookAndFeel(&tos);
 
@@ -61,11 +61,11 @@ Level2Editor::Level2Editor(Ckpa_compressorAudioProcessor& p, Component* parentFo
             cls->addListener(this);
 
             std::function<float(float, float, float)> convertFrom0To1Func, convertTo0To1Func;
-            if (i == 0) { // Set conversion function for threshold line
+            if (i == 0) { // Set conversion function for threshold line, create logarithmic behaviour
                 convertFrom0To1Func = [](float start, float end, float x) { return Decibels::gainToDecibels(x, start); };
                 convertTo0To1Func = [](float start, float end, float x) { return Decibels::decibelsToGain(x, start); };
             }
-            else if (i == 1) { // Set conversion function for ratio line
+            else if (i == 1) { // Set conversion function for ratio line so the value is relative to the slope of the line
                 convertFrom0To1Func = [](float start, float end, float x) { return (x <= 0) ? start : (x >= 1) ? end : 1 / (1 - x); };
                 convertTo0To1Func = [](float start, float end, float x) { return (x >= end) ? 1 : (x <= start) ? 0 : 1 - 1 / x; };
             }
@@ -120,6 +120,7 @@ void Level2Editor::paint(Graphics& g)
 
 void Level2Editor::paintOverChildren(Graphics& g)
 {
+    // paintOverChildren is used in order to paint controlLines on top of visualiser component
     auto r = getLocalBounds().reduced(editorMargin).toFloat();
 
     for (int i : {1, 0, 2})

@@ -129,8 +129,10 @@ void Level3Editor::timerCallback()
     std::shuffle(invisibleAtoms.begin(), invisibleAtoms.end(), g);
     std::shuffle(visibleAtoms.begin(), visibleAtoms.end(), g);
 
-    // fadeIn() / fadeOut() while changing circle size causes atoms to go and stay out of bounds
-    while (visibleAtoms.size() < visibleTarget) {
+    // fadeIn() / fadeOut() while changing circle size causes atoms to go and stay out of bounds.
+    // To prevent that, fadeIn/out is only used when circle is not being resized. 
+    // TODO: Still happens on very rapid circle size change.
+    while (visibleAtoms.size() < visibleTarget) { // Make more Atoms visible to reach target
         int a = invisibleAtoms.back();
         invisibleAtoms.pop_back();
         Atom* atom = atoms.getUnchecked(a);
@@ -140,7 +142,7 @@ void Level3Editor::timerCallback()
             atom->setVisible(true);
         visibleAtoms.push_back(a);
     }
-    while (visibleAtoms.size() > visibleTarget) {
+    while (visibleAtoms.size() > visibleTarget) { // Make less Atoms visible to reach target
         int a = visibleAtoms.back();
         visibleAtoms.pop_back();
         Atom* atom = atoms.getUnchecked(a);

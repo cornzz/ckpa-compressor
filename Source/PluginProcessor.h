@@ -27,18 +27,20 @@
 
 #include <JuceHeader.h>
 #include "PluginParameters.h"
-#include "Visualiser.h"
 
 //==============================================================================
 
-class Ckpa_compressorAudioProcessor  : public AudioProcessor
+class Ckpa_compressorAudioProcessor  : public AudioProcessor,
+                                       public ChangeBroadcaster
 {
 public:
     //==============================================================================
+
     Ckpa_compressorAudioProcessor();
     ~Ckpa_compressorAudioProcessor();
 
     //==============================================================================
+
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -47,12 +49,16 @@ public:
    #endif
 
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
+    float calculateAttackOrRelease(float value);
+    void showBubbleMessage(Slider* slider, Component* popupParent, bool dragMe = false, int timeout = 300);
 
     //==============================================================================
+
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
     //==============================================================================
+
     const String getName() const override;
 
     bool acceptsMidi() const override;
@@ -61,6 +67,7 @@ public:
     double getTailLengthSeconds() const override;
 
     //==============================================================================
+
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram (int index) override;
@@ -68,12 +75,17 @@ public:
     void changeProgramName (int index, const String& newName) override;
 
     //==============================================================================
+
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
 
-    AudioSampleBuffer mixedDownInput;
+    AudioBuffer<float> mixedDownInput;
+    AudioBuffer<float> bufferBefore;
+    AudioBuffer<float> bufferAfter;
+    AudioBuffer<float> bufferGainReduction;
+
     float xl;
     float yl;
     float xg;
@@ -85,7 +97,6 @@ public:
 
     float inverseSampleRate;
     float inverseE;
-    float calculateAttackOrRelease(float value);
 
     //======================================
 
@@ -97,14 +108,13 @@ public:
     PluginParameterLinSlider paramRelease;
     PluginParameterLinSlider paramMakeupGain;
     PluginParameterToggle paramBypass;
+    PluginParameterLinSlider paramCompression;
 
     foleys::LevelMeterSource meterSourceInput;
     foleys::LevelMeterSource meterSourceOutput;
     foleys::LevelMeterSource meterSourceGainReduction;
 
-    //====================================== Level 2
-    
-    Visualiser visualiser;
+    std::unique_ptr<BubbleMessageComponent> popupDisplay;
 
 private:
 

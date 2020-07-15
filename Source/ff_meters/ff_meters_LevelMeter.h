@@ -64,7 +64,8 @@ public:
                                    The additional reduction bar is automatically added, as soon a reduction value < 1.0 is set
                                    in the LevelMeterSource. \see LevelMeterSource::setReductionLevel */
         Minimal         = 0x0020, /**< For a stereo meter, this tries to save space by showing only one line tickmarks in the middle and no max numbers */
-        MaxNumber       = 0x0040  /**< To add level meter to Minimal, set this flag */
+        MaxNumber       = 0x0040,  /**< To add level meter to Minimal, set this flag */
+        HorizontalRight  = 0x0080
     };
 
     enum ColourIds

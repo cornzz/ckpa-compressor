@@ -24,100 +24,10 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-
-//==============================================================================
-
-class Level1Editor : public Component
-{
-public:
-    Level1Editor(Ckpa_compressorAudioProcessor&);
-    ~Level1Editor();
-
-    void paint(Graphics&) override;
-    void resized() override;
-
-private:
-    Ckpa_compressorAudioProcessor& processor;
-	foleys::LevelMeterLookAndFeel lnf;
-    foleys::LevelMeter inputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
-    foleys::LevelMeter outputMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
-    foleys::LevelMeter gainReductionMeter { foleys::LevelMeter::SingleChannel | foleys::LevelMeter::Horizontal };
-
-    enum {
-        editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
-
-        sliderTextEntryBoxWidth = 100,
-        sliderTextEntryBoxHeight = 25,
-        sliderHeight = 25,
-        buttonHeight = 25,
-        comboBoxHeight = 25,
-        levelMeterHeight = 20,
-        labelWidth = 100,
-    };
-
-    //======================================
-
-    OwnedArray<Slider> sliders;
-    OwnedArray<ToggleButton> toggles;
-    OwnedArray<ComboBox> comboBoxes;
-
-    OwnedArray<Label> labels;
-    Array<Component*> components;
-
-    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-    typedef AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
-
-    OwnedArray<SliderAttachment> sliderAttachments;
-    OwnedArray<ButtonAttachment> buttonAttachments;
-    OwnedArray<ComboBoxAttachment> comboBoxAttachments;
-};
-
-//==============================================================================
-
-class Level2Editor : public Component
-{
-public:
-    Level2Editor(Ckpa_compressorAudioProcessor&);
-    ~Level2Editor();
-
-    void paint(Graphics&) override;
-    void resized() override;
-
-private:
-    Ckpa_compressorAudioProcessor& processor;
-    
-    OwnedArray<Slider> controlLines;
-
-    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-
-    OwnedArray<SliderAttachment> sliderAttachments;
-
-    enum {
-        editorWidth = 500,
-        editorMargin = 10,
-        editorPadding = 10,
-    };
-};
-
-//==============================================================================
-
-struct MainTabbedComponent : public TabbedComponent
-{
-    MainTabbedComponent(Ckpa_compressorAudioProcessor& p) : TabbedComponent(TabbedButtonBar::TabsAtBottom)
-    {
-        auto colour = findColour(ResizableWindow::backgroundColourId);
-
-        addTab("Level 1", colour, new Level1Editor(p), true);
-        addTab("Level 2", colour, new Level2Editor(p), true);
-        addTab("Level 3", colour, new Level1Editor(p), true);
-        setOutline(0.0f);
-    }
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainTabbedComponent)
-};
+#include "MainTabbedComponent.h"
+#include "Level1Editor.h"
+#include "Level2Editor.h"
+#include "Level3Editor.h"
 
 //==============================================================================
 
@@ -127,21 +37,15 @@ public:
     Ckpa_compressorAudioProcessorEditor (Ckpa_compressorAudioProcessor&);
     ~Ckpa_compressorAudioProcessorEditor();
 
-    //==============================================================================
+    //======================================
+
     void paint (Graphics&) override;
     void resized() override;
     
-
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Ckpa_compressorAudioProcessor& processor;
-
-    OwnedArray<DrawableButton> buttons;
-
-    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-
-    OwnedArray<ButtonAttachment> buttonAttachments;
 
     enum {
         editorWidth = 500,
@@ -149,11 +53,20 @@ private:
         editorPadding = 10,
     };
 
-    std::string powerButtonSVG = "<svg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'><path d='M0 0h24v24H0z' fill='none'/><path d='M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z'/></svg>";
+    SharedResourcePointer<TooltipWindow> tooltipWindow;
 
+    void resetParameters();
+
+    OwnedArray<ShapeButton> buttons;
+    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
+    OwnedArray<ButtonAttachment> buttonAttachments;
+    // Refactored by hand, since the juce Path class doesnt support neither relative coordinate commands, nor h / v / s commands -- SVG from: https://material.io/resources/icons/
+    String powerButtonPath = "m 0 0 l 25 0 l 25 25 l 0 25 l 25 25 l 25 0 z m 13 3 l 11 3 l 11 13 l 13 13 z m 17.83 5.17 l 16.41 6.59 c 17.99 7.86 19 9.81 19 12 c 19 15.87 15.87 19 12 19 c 8.13 19 5 15.87 5 12 c 5 9.81 6.01 7.86 7.58 6.58 l 6.17 5.17 c 4.23 6.82 3 9.26 3 12 c 3 16.97 7.03 21 12 21 c 16.97 21 21 16.97 21 12 c 21 9.26 19.77 6.82 17.83 5.17 z";
+    String resetButtonPath = "m 0 0 l 25 0 l 25 25 l 0 25 l 25 25 l 25 0 z m 14 12 c 14 10.9 13.1 10 12 10 c 10.9 10 10 10.9 10 12 c 10 13.1 10.9 14 12 14 c 13.1 14 14 13.1 14 12 z m 12 3 c 7.03 3 3 7.03 3 12 l 0 12 l 4 16 l 8 12 l 5 12 c 5 8.13 8.13 5 12 5 c 15.87 5 19 8.13 19 12 c 19 15.87 15.87 19 12 19 c 10.49 19 9.09 18.51 7.94 17.7 l 6.52 19.14 c 8.04 20.3 9.94 21 12 21 c 16.97 21 21 16.97 21 12 c 21 7.03 16.97 3 12 3 z";    
+    
     MainTabbedComponent tabs;
 
-    //==============================================================================
+    //======================================
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Ckpa_compressorAudioProcessorEditor)
 };

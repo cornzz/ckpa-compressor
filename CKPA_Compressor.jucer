@@ -15,6 +15,17 @@
       <FILE id="LtQ2Ae" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="xaw9wh" name="Visualiser.cpp" compile="1" resource="0" file="Source/Visualiser.cpp"/>
       <FILE id="mxzYOg" name="Visualiser.h" compile="0" resource="0" file="Source/Visualiser.h"/>
+      <FILE id="GfGqlf" name="MainTabbedComponent.h" compile="0" resource="0"
+            file="Source/MainTabbedComponent.h"/>
+      <FILE id="kZAZ8i" name="Level1Editor.h" compile="0" resource="0" file="Source/Level1Editor.h"/>
+      <FILE id="Gz6ewb" name="Level1Editor.cpp" compile="1" resource="0"
+            file="Source/Level1Editor.cpp"/>
+      <FILE id="voKysd" name="Level2Editor.h" compile="0" resource="0" file="Source/Level2Editor.h"/>
+      <FILE id="Ax7NUt" name="Level2Editor.cpp" compile="1" resource="0"
+            file="Source/Level2Editor.cpp"/>
+      <FILE id="r7PFqs" name="Level3Editor.h" compile="0" resource="0" file="Source/Level3Editor.h"/>
+      <FILE id="JJKd3P" name="Level3Editor.cpp" compile="1" resource="0"
+            file="Source/Level3Editor.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

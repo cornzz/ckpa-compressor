@@ -22,28 +22,28 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "PluginParameters.h"
 
 //==============================================================================
 
 Ckpa_compressorAudioProcessor::Ckpa_compressorAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", AudioChannelSet::stereo(), true)
-                     #endif
-                       ),
-#endif
+    : AudioProcessor(BusesProperties()
+                    #if ! JucePlugin_IsMidiEffect
+                    #if ! JucePlugin_IsSynth
+                            .withInput("Input", AudioChannelSet::stereo(), true)
+                    #endif
+                            .withOutput("Output", AudioChannelSet::stereo(), true)
+                    #endif
+                        ),
+                    #endif
     parameters(*this)
-    , paramThreshold(parameters, "Threshold", "dB", -60.0f, 0.0f, -24.0f)
+    , paramThreshold(parameters, "Threshold", "dB", -60.0f, 0.0f, 0.0f)
     , paramRatio(parameters, "Ratio", ":1", 1.0f, 100.0f, 1.0f)
     , paramAttack(parameters, "Attack", "ms", 0.1f, 100.0f, 2.0f, [](float value) { return value * 0.001f; })
     , paramRelease(parameters, "Release", "ms", 10.0f, 1000.0f, 300.0f, [](float value) { return value * 0.001f; })
-    , paramMakeupGain(parameters, "Makeup gain", "dB", -12.0f, 12.0f, 0.0f)
+    , paramMakeupGain(parameters, "Makeup Gain", "dB", -12.0f, 12.0f, 0.0f)
     , paramBypass(parameters, "")
+    , paramCompression(parameters, "Compression", "ck", 0.0f, 20.0f, 20.0f)
 {
     parameters.valueTreeState.state = ValueTree(Identifier(getName().removeCharacters("- ")));
 }
@@ -63,17 +63,26 @@ void Ckpa_compressorAudioProcessor::prepareToPlay (double sampleRate, int sample
     paramRelease.reset(sampleRate, smoothTime);
     paramMakeupGain.reset(sampleRate, smoothTime);
     paramBypass.reset(sampleRate, smoothTime);
+    paramCompression.reset(sampleRate, smoothTime);
 
     //======================================
 
+    int numInputChannels = getTotalNumInputChannels();
+
     mixedDownInput.setSize(1, samplesPerBlock);
+    bufferBefore.setSize(numInputChannels, samplesPerBlock);
+    bufferAfter.setSize(numInputChannels, samplesPerBlock);
+    bufferGainReduction.setSize(numInputChannels, samplesPerBlock);
+
+    meterSourceInput.resize(1, 1024);
+    meterSourceOutput.resize(1, 1024);
+    meterSourceGainReduction.resize(1, 1024);
 
     inputLevel = 0.0f;
     ylPrev = 0.0f;
 
     inverseSampleRate = 1.0f / (float) getSampleRate();
     inverseE = 1.0f / M_E;
-    visualiser.clear();
 }
 
 void Ckpa_compressorAudioProcessor::releaseResources()
@@ -89,14 +98,12 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
     const int numSamples = buffer.getNumSamples();
 
     // Create copy of buffer before compression
-    AudioBuffer<float> bufferBefore;
     bufferBefore.makeCopyOf(buffer);
-    
-    AudioBuffer<float> bufferGainReduction;
-    bufferGainReduction.makeCopyOf(buffer);
 
     // Don't compress if bypass activated
-    if (!(bool)paramBypass.getTargetValue()) {
+    if (!(bool) paramBypass.getTargetValue()) {
+        bufferGainReduction.makeCopyOf(buffer);
+
         mixedDownInput.clear();
         for (int channel = 0; channel < numInputChannels; ++channel)
             mixedDownInput.addFrom(0, 0, buffer, channel, 0, numSamples, 1.0f / numInputChannels);
@@ -108,9 +115,9 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
             float alphaR = calculateAttackOrRelease(paramRelease.getNextValue());   // Release
             float makeupGain = paramMakeupGain.getNextValue();                      // Makeup Gain
 
-            // Square input
+            // Square input to get rid of sign
             inputLevel = powf(mixedDownInput.getSample(0, sample), 2.0f);
-            // Convert gain to dB
+            // Convert gain to dB (10.0f instead of 20.0f since inputLevel was squared)
             xg = (inputLevel <= 1e-6f) ? -60.0f : 10.0f * log10f(inputLevel);
 
             // Compressor
@@ -137,7 +144,8 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
                 float oldValue = buffer.getSample(channel, sample);
                 float newValue = oldValue * control;
                 buffer.setSample(channel, sample, newValue);
-                bufferGainReduction.setSample(channel, sample, oldValue - newValue);
+                float reductionValue = control < 1 ? oldValue - newValue : 0;
+                bufferGainReduction.setSample(channel, sample, reductionValue);
             }
         }
     }
@@ -149,13 +157,16 @@ void Ckpa_compressorAudioProcessor::processBlock (AudioBuffer<float>& buffer, Mi
         }
     }
 
+    // Create copy of buffer after compression
+    bufferAfter.makeCopyOf(buffer);
+
     // Push signal to level metersources
     meterSourceInput.measureBlock(bufferBefore);
     meterSourceOutput.measureBlock(buffer);
-    meterSourceGainReduction.measureBlock(bufferGainReduction);    
+    meterSourceGainReduction.measureBlock(bufferGainReduction);
 
-    // Push signal to visualiser buffer
-    visualiser.pushBuffer(bufferBefore, buffer);
+    // Notify visualiser parent that buffer changed
+    sendChangeMessage();
 
     //======================================
 
@@ -171,6 +182,23 @@ float Ckpa_compressorAudioProcessor::calculateAttackOrRelease(float value)
         return pow(inverseE, inverseSampleRate / value);
 }
 
+void Ckpa_compressorAudioProcessor::showBubbleMessage(Slider* slider, Component* popupParent, bool dragMe, int timeout)
+{
+    popupDisplay.reset(new BubbleMessageComponent(dragMe ? 150 : 0));
+    popupParent->addChildComponent(popupDisplay.get());
+    int sliderTop = slider->getY();
+    int sliderX = slider->getX();
+    int sliderPos = slider->getPositionOfValue(slider->getValue());
+    int x = slider->isHorizontal() ? sliderX + sliderPos : sliderX + slider->getWidth() / 2;
+    int y = slider->isHorizontal() ? sliderTop + slider->getHeight() / 2 : sliderTop + sliderPos;
+    Point<int> pos(x, y);
+    pos.applyTransform(slider->getTransform());
+    AttributedString text(String(slider->getValue(), 2) + slider->getTextValueSuffix());
+    if (dragMe)
+        text.setText("Drag me!");
+    text.setColour(Colours::white);
+    popupDisplay.get()->showAt(Rectangle<int>(25, 25).withCentre(pos), text, timeout, false, false);
+}
 
 //==============================================================================
 
@@ -191,6 +219,7 @@ void Ckpa_compressorAudioProcessor::setStateInformation(const void* data, int si
 }
 
 //==============================================================================
+
 bool Ckpa_compressorAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)

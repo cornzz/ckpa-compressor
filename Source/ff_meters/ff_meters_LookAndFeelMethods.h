@@ -558,7 +558,7 @@ void drawMeterBar (juce::Graphics& g,
                    const juce::Rectangle<float> bounds,
                    const float rms, const float peak) override
 {
-    const auto infinity = meterType & foleys::LevelMeter::Reduction ? -30.0f :  -80.0f;
+    const auto infinity = meterType & foleys::LevelMeter::Reduction ? -30.0f :  -60.0f;
     const auto rmsDb  = juce::Decibels::gainToDecibels (rms,  infinity);
     const auto peakDb = juce::Decibels::gainToDecibels (peak, infinity);
 
@@ -592,16 +592,28 @@ void drawMeterBar (juce::Graphics& g,
                 horizontalGradient.addColour (0.75, findColour (foleys::LevelMeter::lmMeterGradientMidColour));
             }
             g.setGradientFill (horizontalGradient);*/
+
             g.setColour(findColour(foleys::LevelMeter::lmMeterGradientLowColour));
-            g.fillRect (floored.withRight (floored.getRight() - rmsDb * floored.getWidth() / infinity));
+            if (meterType & foleys::LevelMeter::HorizontalRight) {
+                g.fillRect(floored.withLeft(floored.getX() + rmsDb * floored.getWidth() / infinity));
+            }
+            else {                
+                g.fillRect(floored.withRight(floored.getRight() - rmsDb * floored.getWidth() / infinity));
+            }
 
             if (peakDb > -49.0)
             {
                 g.setColour (findColour ((peakDb > -0.3f) ? foleys::LevelMeter::lmMeterMaxOverColour :
                                          ((peakDb > -5.0) ? foleys::LevelMeter::lmMeterMaxWarnColour :
                                           foleys::LevelMeter::lmMeterMaxNormalColour)));
-                g.drawVerticalLine (juce::roundToInt (floored.getRight() - juce::jmax (peakDb * floored.getWidth() / infinity, 0.0f)),
-                                    floored.getY(), floored.getBottom());
+
+                int xPos;
+                if (meterType & foleys::LevelMeter::HorizontalRight)
+                    xPos = juce::roundToInt(floored.getX() + juce::jmax(peakDb * floored.getWidth() / infinity, 0.0f));
+                else
+                    xPos = juce::roundToInt(floored.getRight() - juce::jmax(peakDb * floored.getWidth() / infinity, 0.0f));
+
+                g.drawVerticalLine (xPos, floored.getY(), floored.getBottom());
             }
         }
         else

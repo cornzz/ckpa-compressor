@@ -41,7 +41,7 @@ public:
     void setBufferSize(int newNumSamples);
     void clear();
     void pushBufferTop(const float** d, int numChannels, int num);
-    void pushBuffer(const AudioBuffer<float>& buffer, const AudioBuffer<float>& buffer2);
+    void pushBuffer(const AudioBuffer<float>& bufferBottom, const AudioBuffer<float>& bufferTop);
     void setSamplesPerBlock(int newSamplesPerPixel) noexcept;
 
     void setColours(Colour bk, Colour fg) noexcept;
@@ -106,53 +106,4 @@ private:
     OwnedArray<ChannelInfo2> channelsTop;
     int numSamplesTop, inputSamplesPerBlockTop;
     Colour waveformColour2;
-};
-
-//==============================================================================
-
-class DraggableHorizontalLine : public LookAndFeel_V4
-{
-public:
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
-        float sliderPos,
-        float minSliderPos,
-        float maxSliderPos,
-        const Slider::SliderStyle style, Slider& slider) override
-    {
-        /*auto trackWidth = jmin(6.0f, width * 0.25f);
-
-        Point<float> startPoint(x + width * 0.5f, height + y);
-
-        Point<float> endPoint(startPoint.x, y);
-
-        Path backgroundTrack;
-        backgroundTrack.startNewSubPath(startPoint);
-        backgroundTrack.lineTo(endPoint);
-        g.setColour(slider.findColour(Slider::backgroundColourId));
-        g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
-
-        Path valueTrack;
-        Point<float> minPoint, maxPoint, thumbPoint;
-        
-        auto kx = x + width * 0.5f;
-        auto ky = sliderPos;
-
-        minPoint = startPoint;
-        maxPoint = { kx, ky };
-
-        valueTrack.startNewSubPath(minPoint);
-        valueTrack.lineTo(maxPoint);
-        g.setColour(slider.findColour(Slider::trackColourId));
-        g.strokePath(valueTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });*/
-
-        g.setColour(slider.findColour(Slider::thumbColourId));
-        Line<float> line(Point<float>(x, sliderPos), Point<float>(x + 300, sliderPos));
-        g.drawLine(line, 1.0f);
-
-        auto thumbWidth = getSliderThumbRadius(slider);
-        g.setColour(slider.findColour(Slider::thumbColourId));
-        g.fillEllipse(Rectangle<float>(static_cast<float> (thumbWidth), static_cast<float> (thumbWidth)).withCentre(Point<float>(x + width * 0.5f, sliderPos)));
-    }
-
-private:
 };

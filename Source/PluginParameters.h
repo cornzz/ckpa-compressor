@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    Code by cornzz and Philip Arms.
+    Code by cornzz.
     Uses code by Juan Gil <https://juangil.com/>
 
     This program is free software: you can redistribute it and/or modify
@@ -65,6 +65,12 @@ public:
     void parameterChanged(const String& parameterID, float newValue) override
     {
         updateValue(newValue);
+    }
+
+    void resetParameter()
+    {
+        RangedAudioParameter* param = parametersManager.valueTreeState.getParameter(paramID);
+        param->setValueNotifyingHost(param->getDefaultValue());
     }
 
     PluginParametersManager& parametersManager;
@@ -200,36 +206,26 @@ public:
 
 //==============================================================================
 
-class PluginParameterComboBox : public PluginParameter
+class ThumbOnlySlider : public LookAndFeel_V4
 {
 public:
-    PluginParameterComboBox(PluginParametersManager& parametersManager,
-        const String& paramName,
-        const StringArray items,
-        const int defaultChoice = 0,
-        const std::function<float(const float)> callback = nullptr)
-        : PluginParameter(parametersManager, callback)
-        , paramName(paramName)
-        , items(items)
-        , defaultChoice(defaultChoice)
+    void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
+        float sliderPos,
+        float minSliderPos,
+        float maxSliderPos,
+        const Slider::SliderStyle style, Slider& slider) override
     {
-        paramID = paramName.removeCharacters(" ").toLowerCase();
-        parametersManager.parameterTypes.add("ComboBox");
+        // Visualise slider bounds
+        //g.setColour(Colours::black);
+        //g.drawRect(Rectangle<int>(x, y, width, height));
 
-        parametersManager.comboBoxItemLists.add(items);
-        NormalisableRange<float> range(0.0f, (float)items.size() - 1.0f, 1.0f);
-
-        parametersManager.valueTreeState.createAndAddParameter(std::make_unique<Parameter>
-            (paramID, paramName, "", range, (float)defaultChoice,
-                [items](float value) { return items[(int)value]; },
-                [items](const String& text) { return items.indexOf(text); })
-        );
-
-        parametersManager.valueTreeState.addParameterListener(paramID, this);
-        updateValue((float)defaultChoice);
+        auto thumbWidth = getSliderThumbRadius(slider) * 1.15f;
+        g.setColour(slider.findColour(Slider::thumbColourId));
+        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
+        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
+        g.fillEllipse(Rectangle<float>(static_cast<float> (thumbWidth), static_cast<float> (thumbWidth))
+            .withCentre({ kx, ky }));
     }
 
-    const String& paramName;
-    const StringArray items;
-    const int defaultChoice;
+private:
 };

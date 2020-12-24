@@ -1,4 +1,4 @@
-# Technische Dokumentation vom FXPlugin Dynamics
+# Technische Dokumentation des Kompressors
 
 ## Gliederung
 
@@ -38,7 +38,7 @@
 
 ### zur Nutzung
 
-1. [CKPA_Kompressor.zip](https://gitlab.mg.inf.tu-dresden.de/komplexpraktika/audio/FXPlugIn-Dynamics-SoSe20/uploads/8def0066863f22c5b99561bacafc35c3/CKPA_Compressor.zip) herunterladen und entpacken
+1. [CKPA_Kompressor.vst3](https://github.com/cornzz/ckpa-compressor/releases/latest) herunterladen und entpacken
 2. CKPA_Kompressor.vst3 in beliebiger DAW / beliebigem VST3 Plugin Host öffnen
 
 ### zur Entwicklung
@@ -46,8 +46,8 @@
 * Visual Studio mit Paketen für die C++ Entwicklung installieren
 * JUCE herunterladen
 * Projekt Repository beziehen:
-	* SSH: git@gitlab.mg.inf.tu-dresden.de:komplexpraktika/audio/FXPlugIn-Dynamics-SoSe20.git
-	* HTTPS: https://gitlab.mg.inf.tu-dresden.de/komplexpraktika/audio/FXPlugIn-Dynamics-SoSe20.git
+	* SSH: git@github.com:cornzz/ckpa-compressor.git
+	* HTTPS: https://github.com/cornzz/ckpa-compressor.git
 * CKPA_Compressor.jucer im Projucer öffnen, Visual Studio Button anklicken
 * "VST3 Plugin" als Startprojekt festlegen
 * Einstellungen von "VST3 Plugin" öffnen, unter "Debugging" die DAW / VST3 Plugin Host Executable als Befehl auswählen

@@ -1,3 +1,19 @@
+This is the result of work I did for the course Audio Interfaces at TU Dresden. 
+The goal was to create a [VST3](https://de.wikipedia.org/wiki/Virtual_Studio_Technology) plugin using the [JUCE Framework](https://juce.com/).
+I chose to make an [audio compressor](https://en.wikipedia.org/wiki/Dynamic_range_compression) with 3 levels of abstraction, allowing for different levels of control and granularity thereof.
+
+Below you can find some screenshots of the plugin and the original rough technical documentation which was submitted with the project.
+
+Level 1	                   	     | Level 2                              | Level 3                              
+:-----------------------------------:|:------------------------------------:|:------------------------------------:
+![](https://i.imgur.com/IdxKqm8.png) | ![](https://i.imgur.com/j6zG1dT.png) | ![](https://i.imgur.com/wmQGpW8.png)
+
+<br>
+
+---
+
+<br>
+
 # Technische Dokumentation des Kompressors
 
 ## Gliederung
